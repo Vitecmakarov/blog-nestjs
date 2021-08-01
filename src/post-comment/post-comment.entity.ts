@@ -1,27 +1,39 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import { v4 } from 'uuid';
+
 @Entity('post-comment')
 export class PostCommentEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id: string;
 
   @Column()
-  userId: number;
+  userId: string;
 
   @Column()
-  postId: number;
+  postId: string;
 
   @Column()
-  attachments: ArrayBuffer;
+  attachments: Buffer;
 
-  @Column()
+  @Column({ length: 500 })
   content: string;
 
   @Column()
-  createdAt: number;
+  createdAt: string;
 
-  @Column()
-  updatedAt: number;
+  @Column({ default: null })
+  updatedAt: string;
 
-  @Column()
-  publishedAt: number;
+  @Column({ default: null })
+  publishedAt: string;
+
+  @BeforeInsert()
+  async generateId() {
+    this.id = v4();
+  }
+
+  @BeforeInsert()
+  async saveRegistrationTime() {
+    this.createdAt = `${Date.now()}`;
+  }
 }

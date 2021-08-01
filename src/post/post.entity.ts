@@ -1,27 +1,28 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
+
 @Entity('post')
 export class PostEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id: string;
 
   @Column()
-  userId: number;
+  user_id: string;
 
-  @Column()
+  @Column({ length: 20 })
   title: string;
 
   @Column()
-  attachments: ArrayBuffer;
+  attachments: Buffer;
 
-  @Column()
+  @Column({ length: 500 })
   content: string;
 
   @Column()
-  createdAt: number;
+  created_at: string;
 
   @Column()
-  updatedAt: number;
+  updated_at: string;
 
   @Column()
-  publishedAt: number;
+  published_at: string;
 }

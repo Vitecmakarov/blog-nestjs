@@ -1,44 +1,55 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
-import * as crypto from 'crypto';
+import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import { v4 } from 'uuid';
+
+import * as bcrypt from 'bcrypt';
+
 @Entity('user')
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id: string;
 
-  @Column()
-  firstName: string;
+  @Column({ length: 50 })
+  first_name: string;
 
-  @Column()
-  lastName: string;
+  @Column({ length: 50 })
+  last_name: string;
 
-  @Column()
+  @Column({ length: 15 })
   mobile: string;
 
-  @Column()
+  @Column({ length: 20 })
   email: string;
 
   @Column()
-  passwordHash: string;
+  password: string;
 
   @Column()
-  registeredAt: number;
+  registered_at: string;
 
-  @Column()
-  lastLogin: number;
+  @Column({ default: null })
+  last_login: string;
 
-  @Column()
-  profileDesc: string;
+  @Column({ default: null, length: 100 })
+  profile_desc: string;
 
-  @Column()
-  avatar: ArrayBuffer;
+  @Column({ default: null })
+  avatar: Buffer;
 
-  @Column()
-  isBanned: boolean;
+  @Column({ default: false })
+  is_banned: boolean;
 
   @BeforeInsert()
-  hashPassword() {
-    this.passwordHash = crypto
-      .createHmac('sha256', this.passwordHash)
-      .digest('hex');
+  async generateId() {
+    this.id = v4();
+  }
+
+  @BeforeInsert()
+  async saveRegistrationTime() {
+    this.registered_at = `${Date.now()}`;
+  }
+
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
   }
 }
