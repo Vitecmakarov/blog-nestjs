@@ -16,7 +16,7 @@ export class UsersEntity {
   @Column({ length: 15, nullable: false })
   mobile: string;
 
-  @Column({ length: 20, nullable: false })
+  @Column({ length: 100, nullable: false })
   email: string;
 
   @Column({ nullable: false })
