@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './user/users.module';
-import { PostModule } from './post/post.module';
+import { PostsModule } from './post/posts.module';
 import { CategoriesModule } from './category/categories.module';
 import { PostCommentModule } from './post-comment/post-comment.module';
 
@@ -9,7 +9,7 @@ import { PostCommentModule } from './post-comment/post-comment.module';
   imports: [
     TypeOrmModule.forRoot(),
     UsersModule,
-    PostModule,
+    PostsModule,
     CategoriesModule,
     PostCommentModule,
   ],

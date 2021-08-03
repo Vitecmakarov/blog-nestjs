@@ -13,7 +13,7 @@ export class PostCommentEntity {
   postId: string;
 
   @Column({ default: null })
-  attachments: string;
+  images: string;
 
   @Column({ nullable: false })
   content: string;

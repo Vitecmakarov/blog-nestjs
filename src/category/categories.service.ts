@@ -12,16 +12,20 @@ export class CategoriesService {
   ) {}
 
   async create(data: CategoriesDto): Promise<void> {
-    const user = this.categoriesRepository.create(data);
-    await this.categoriesRepository.save(user);
+    const category = this.categoriesRepository.create(data);
+    await this.categoriesRepository.save(category);
   }
 
   async getAll(): Promise<CategoriesEntity[]> {
-    return await this.categoriesRepository.find();
+    return await this.categoriesRepository.find({
+      relations: ['posts'],
+    });
   }
 
   async getById(id: string): Promise<CategoriesEntity> {
-    return await this.categoriesRepository.findOne(id);
+    return await this.categoriesRepository.findOne(id, {
+      relations: ['posts'],
+    });
   }
 
   async getByTitle(title: string): Promise<CategoriesEntity[]> {

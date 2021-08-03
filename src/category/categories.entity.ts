@@ -1,5 +1,13 @@
-import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  BeforeInsert,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { v4 } from 'uuid';
+import { PostsEntity } from '../post/posts.entity';
 
 @Entity('category')
 export class CategoriesEntity {
@@ -8,6 +16,10 @@ export class CategoriesEntity {
 
   @Column({ length: 100, nullable: false })
   title: string;
+
+  @ManyToMany(() => PostsEntity, (posts) => posts.categories)
+  @JoinTable()
+  posts: PostsEntity[];
 
   @BeforeInsert()
   async generateId() {

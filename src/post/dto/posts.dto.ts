@@ -6,7 +6,7 @@ import {
   IsUUID,
   MaxLength,
 } from 'class-validator';
-import { PostEntity } from '../post.entity';
+import { PostsEntity } from '../posts.entity';
 
 export class CreatePostDto {
   @IsString()
@@ -25,7 +25,7 @@ export class CreatePostDto {
   content: string;
 
   @IsString()
-  attachments?: string;
+  images?: string;
 }
 
 export class UpdatePostDto {
@@ -42,18 +42,18 @@ export class UpdatePostDto {
   content?: string;
 
   @IsString()
-  attachments?: string;
+  images?: string;
 }
 
 export interface ResponseToClient {
   status_code: number;
   message: string;
-  data?: PostEntity[];
+  data?: PostsEntity[];
 }
 
 export interface categoryAction {
   type: Action;
-  id: string;
+  category_id: string;
 }
 
 export enum Action {

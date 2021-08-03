@@ -9,12 +9,16 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import { PostService } from './post.service';
-import { CreatePostDto, ResponseToClient, UpdatePostDto } from './dto/post.dto';
+import { PostsService } from './posts.service';
+import {
+  CreatePostDto,
+  ResponseToClient,
+  UpdatePostDto,
+} from './dto/posts.dto';
 
 @Controller('posts')
-export class PostController {
-  constructor(private postsService: PostService) {}
+export class PostsController {
+  constructor(private postsService: PostsService) {}
 
   @Post('create')
   async createPost(@Body() data: CreatePostDto): Promise<ResponseToClient> {
@@ -62,12 +66,12 @@ export class PostController {
       if (!post) {
         return {
           status_code: HttpStatus.NOT_FOUND,
-          message: 'Post is not exist!',
+          message: 'No posts!',
         };
       }
       return {
         status_code: HttpStatus.OK,
-        message: 'Post fetched successfully!',
+        message: 'Posts fetched successfully!',
         data: post,
       };
     } catch (e) {

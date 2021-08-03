@@ -81,10 +81,10 @@ export class CategoriesController {
   }
 
   @Get('all')
-  async getAllPosts(): Promise<ResponseToClient> {
+  async getAllCategories(): Promise<ResponseToClient> {
     try {
-      const post = await this.categoriesService.getAll();
-      if (!post) {
+      const category = await this.categoriesService.getAll();
+      if (!category) {
         return {
           status_code: HttpStatus.NOT_FOUND,
           message: 'No founded categories!',
@@ -93,7 +93,7 @@ export class CategoriesController {
       return {
         status_code: HttpStatus.OK,
         message: 'Categories fetched successfully!',
-        data: post,
+        data: category,
       };
     } catch (e) {
       return {
@@ -104,13 +104,13 @@ export class CategoriesController {
   }
 
   @Patch('category/:id')
-  async updatePost(
+  async updateCategory(
     @Param('id') id: string,
     @Body() data: CategoriesDto,
   ): Promise<ResponseToClient> {
     try {
-      const post = await this.categoriesService.getById(id);
-      if (!post) {
+      const category = await this.categoriesService.getById(id);
+      if (!category) {
         return {
           status_code: HttpStatus.NOT_FOUND,
           message: 'Post category is not exist!',
@@ -130,10 +130,10 @@ export class CategoriesController {
   }
 
   @Delete('category/:id')
-  async deletePost(@Param('id') id: string): Promise<ResponseToClient> {
+  async deleteCategory(@Param('id') id: string): Promise<ResponseToClient> {
     try {
-      const post = await this.categoriesService.getById(id);
-      if (!post) {
+      const category = await this.categoriesService.getById(id);
+      if (!category) {
         return {
           status_code: HttpStatus.NOT_FOUND,
           message: 'Post category is not exist!',

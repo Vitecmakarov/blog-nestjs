@@ -20,12 +20,16 @@ export class UsersService {
     return await this.usersRepository.findOne(id);
   }
 
-  async update(id: string, data: Partial<UpdateUserDto>): Promise<void> {
+  async update(id: string, data: UpdateUserDto): Promise<void> {
     await this.usersRepository.update({ id }, data);
   }
 
   async updatePassword(id: string, newPassword: string): Promise<void> {
     await this.usersRepository.update({ id }, { password: newPassword });
+  }
+
+  async updateLastLogin(id: string, loginDate: string): Promise<void> {
+    await this.usersRepository.update({ id }, { last_login: loginDate });
   }
 
   async remove(id: string): Promise<void> {

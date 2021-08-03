@@ -1,8 +1,15 @@
-import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  BeforeInsert,
+  ManyToMany,
+} from 'typeorm';
 import { v4 } from 'uuid';
+import { CategoriesEntity } from '../category/categories.entity';
 
 @Entity('post')
-export class PostEntity {
+export class PostsEntity {
   @PrimaryColumn()
   id: string;
 
@@ -13,7 +20,7 @@ export class PostEntity {
   title: string;
 
   @Column({ default: null })
-  attachments: string;
+  images: string;
 
   @Column({ nullable: false })
   content: string;
@@ -30,6 +37,9 @@ export class PostEntity {
 
   @Column({ type: 'timestamp', default: null })
   published_at: string;
+
+  @ManyToMany(() => CategoriesEntity, (category) => category.posts)
+  categories: CategoriesEntity[];
 
   @BeforeInsert()
   async generateId() {
