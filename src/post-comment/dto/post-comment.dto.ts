@@ -1,6 +1,6 @@
 import { IsString, IsUUID } from 'class-validator';
 
-export class PostCommentDto {
+export class CreatePostCommentDto {
   @IsString()
   @IsUUID()
   userId: string;
@@ -9,8 +9,9 @@ export class PostCommentDto {
   @IsUUID()
   postId: string;
 
-  attachments: Buffer;
-
   @IsString()
   content: string;
+
+  @IsString()
+  attachments?: string;
 }

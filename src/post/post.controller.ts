@@ -10,96 +10,118 @@ import {
 } from '@nestjs/common';
 
 import { PostService } from './post.service';
-import { ResponseToClient } from '../dto/app.dto';
-import { PostDto } from './dto/post.dto';
+import { CreatePostDto, ResponseToClient, UpdatePostDto } from './dto/post.dto';
 
-@Controller('post')
+@Controller('posts')
 export class PostController {
   constructor(private postsService: PostService) {}
 
   @Post('create')
-  async createPost(@Body() data: PostDto): Promise<ResponseToClient> {
+  async createPost(@Body() data: CreatePostDto): Promise<ResponseToClient> {
     try {
       await this.postsService.create(data);
       return {
-        statusCode: HttpStatus.OK,
-        message: 'Post created successfully',
+        status_code: HttpStatus.OK,
+        message: 'Post created successfully!',
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
 
-  @Get(':id')
+  @Get('post/:id')
   async getPostById(@Param('id') id: string): Promise<ResponseToClient> {
     try {
       const post = await this.postsService.getById(id);
       if (!post) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'Post is not exist',
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'Post is not exist!',
         };
       }
       return {
-        statusCode: HttpStatus.OK,
-        message: 'Post fetched successfully',
-        data: post,
+        status_code: HttpStatus.OK,
+        message: 'Post fetched successfully!',
+        data: [post],
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
 
-  @Patch(':id')
+  @Get('all')
+  async getAllPosts(): Promise<ResponseToClient> {
+    try {
+      const post = await this.postsService.getAll();
+      if (!post) {
+        return {
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'Post is not exist!',
+        };
+      }
+      return {
+        status_code: HttpStatus.OK,
+        message: 'Post fetched successfully!',
+        data: post,
+      };
+    } catch (e) {
+      return {
+        status_code: e.code,
+        message: e.message,
+      };
+    }
+  }
+
+  @Patch('post/:id')
   async updatePost(
     @Param('id') id: string,
-    @Body() data: Partial<PostDto>,
+    @Body() data: UpdatePostDto,
   ): Promise<ResponseToClient> {
     try {
       const post = await this.postsService.getById(id);
       if (!post) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'Post is not exist',
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'Post is not exist!',
         };
       }
       await this.postsService.update(id, data);
       return {
-        statusCode: HttpStatus.OK,
-        message: 'Post updated successfully',
+        status_code: HttpStatus.OK,
+        message: 'Post updated successfully!',
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
 
-  @Delete(':id')
+  @Delete('post/:id')
   async deletePost(@Param('id') id: string): Promise<ResponseToClient> {
     try {
       const post = await this.postsService.getById(id);
       if (!post) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'Post is not exist',
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'Post is not exist!',
         };
       }
       await this.postsService.remove(id);
       return {
-        statusCode: HttpStatus.OK,
-        message: 'Post deleted successfully',
+        status_code: HttpStatus.OK,
+        message: 'Post deleted successfully!',
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }

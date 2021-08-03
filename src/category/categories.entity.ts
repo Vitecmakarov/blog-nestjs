@@ -2,11 +2,11 @@ import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
 import { v4 } from 'uuid';
 
 @Entity('category')
-export class CategoryEntity {
+export class CategoriesEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column()
+  @Column({ length: 100, nullable: false })
   title: string;
 
   @BeforeInsert()

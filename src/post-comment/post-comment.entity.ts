@@ -6,34 +6,33 @@ export class PostCommentEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column()
+  @Column({ nullable: false })
   userId: string;
 
-  @Column()
+  @Column({ nullable: false })
   postId: string;
 
-  @Column()
-  attachments: Buffer;
+  @Column({ default: null })
+  attachments: string;
 
-  @Column({ length: 500 })
+  @Column({ nullable: false })
   content: string;
 
-  @Column()
+  @Column({
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+    type: 'timestamp',
+  })
   createdAt: string;
 
-  @Column({ default: null })
+  @Column({ type: 'timestamp', default: null })
   updatedAt: string;
 
-  @Column({ default: null })
+  @Column({ type: 'timestamp', default: null })
   publishedAt: string;
 
   @BeforeInsert()
   async generateId() {
     this.id = v4();
-  }
-
-  @BeforeInsert()
-  async saveRegistrationTime() {
-    this.createdAt = `${Date.now()}`;
   }
 }

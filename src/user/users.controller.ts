@@ -9,31 +9,60 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import { UserService } from './user.service';
-import { ResponseToClient } from '../dto/app.dto';
-import { UserDto } from './dto/user.dto';
+import { UsersService } from './users.service';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  ResponseToClient,
+} from './dto/users.dto';
 
-@Controller('user')
-export class UserController {
-  constructor(private usersService: UserService) {}
+@Controller('users')
+export class UsersController {
+  constructor(private usersService: UsersService) {}
 
   @Post('register')
-  async registerUser(@Body() data: UserDto): Promise<ResponseToClient> {
+  async registerUser(@Body() data: CreateUserDto): Promise<ResponseToClient> {
     try {
       await this.usersService.create(data);
       return {
-        statusCode: HttpStatus.OK,
+        status_code: HttpStatus.OK,
         message: 'Registration process succeed!',
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
 
-  @Patch('changePass/:id')
+  @Patch('user/:id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() data: UpdateUserDto,
+  ): Promise<ResponseToClient> {
+    try {
+      const user = await this.usersService.getById(id);
+      if (!user) {
+        return {
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'User is not exist!',
+        };
+      }
+      await this.usersService.update(id, data);
+      return {
+        status_code: HttpStatus.OK,
+        message: 'User updated successfully!',
+      };
+    } catch (e) {
+      return {
+        status_code: e.code,
+        message: e.message,
+      };
+    }
+  }
+
+  @Patch('pass/change/:id')
   async changePassword(
     @Param('id') id: string,
     @Body() password: string,
@@ -42,64 +71,64 @@ export class UserController {
       const user = await this.usersService.getById(id);
       if (!user) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
+          status_code: HttpStatus.NOT_FOUND,
           message: 'User is not exist!',
         };
       }
       await this.usersService.updatePassword(id, password);
       return {
-        statusCode: HttpStatus.OK,
+        status_code: HttpStatus.OK,
         message: 'User password updated successfully!',
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
 
-  @Get(':id')
+  @Get('user/:id')
   async getUserById(@Param('id') id: string): Promise<ResponseToClient> {
     try {
       const user = await this.usersService.getById(id);
       if (!user) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'User is not exist',
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'User is not exist!',
         };
       }
       return {
-        statusCode: HttpStatus.OK,
-        message: 'User fetched successfully',
-        data: user,
+        status_code: HttpStatus.OK,
+        message: 'User fetched successfully!',
+        data: [user],
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
 
-  @Delete(':id')
+  @Delete('user/:id')
   async deleteUser(@Param('id') id: string): Promise<ResponseToClient> {
     try {
       const user = await this.usersService.getById(id);
       if (!user) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'User is not exist',
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'User is not exist!',
         };
       }
       await this.usersService.remove(id);
       return {
-        statusCode: HttpStatus.OK,
-        message: 'User deleted successfully',
+        status_code: HttpStatus.OK,
+        message: 'User deleted successfully!',
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
@@ -112,47 +141,20 @@ export class UserController {
       const user = await this.usersService.getAll();
       if (user.length === 0) {
         return {
-          statusCode: HttpStatus.NOT_FOUND,
+          status_code: HttpStatus.NOT_FOUND,
           message: 'No founded users!',
         };
       }
       return {
-        statusCode: HttpStatus.OK,
-        message: 'Users fetched successfully',
+        status_code: HttpStatus.OK,
+        message: 'Users fetched successfully!',
         data: user,
       };
     } catch (e) {
       return {
-        statusCode: e.code,
+        status_code: e.code,
         message: e.message,
       };
     }
   }
-
-  // TODO: Think about rigid or flexible structure
-  // @Patch(':id')
-  // async updateUser(
-  //   @Param('id') id: string,
-  //   @Body() data: Partial<UserDto>,
-  // ): Promise<ResponseToClient> {
-  //   try {
-  //     const user = await this.usersService.getById(id);
-  //     if (!user) {
-  //       return {
-  //         statusCode: HttpStatus.NOT_FOUND,
-  //         message: 'User is not exist',
-  //       };
-  //     }
-  //     await this.usersService.update(id, data);
-  //     return {
-  //       statusCode: HttpStatus.OK,
-  //       message: 'User updated successfully',
-  //     };
-  //   } catch (e) {
-  //     return {
-  //       statusCode: e.code,
-  //       message: e.message,
-  //     };
-  //   }
-  // }
 }

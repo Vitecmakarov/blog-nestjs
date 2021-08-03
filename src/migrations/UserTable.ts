@@ -7,10 +7,10 @@ export class UserTable implements MigrationInterface {
         columns: [
           {
             name: 'id',
-            type: 'bigint',
+            type: 'varchar',
             isPrimary: true,
-            isGenerated: true,
-            generationStrategy: 'increment',
+            isGenerated: false,
+            isNullable: false,
           },
           {
             name: 'firstName',

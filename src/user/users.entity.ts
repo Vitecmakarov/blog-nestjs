@@ -1,39 +1,42 @@
 import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
 import { v4 } from 'uuid';
-
 import * as bcrypt from 'bcrypt';
 
 @Entity('user')
-export class UserEntity {
+export class UsersEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, nullable: false })
   first_name: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, nullable: false })
   last_name: string;
 
-  @Column({ length: 15 })
+  @Column({ length: 15, nullable: false })
   mobile: string;
 
-  @Column({ length: 20 })
+  @Column({ length: 20, nullable: false })
   email: string;
 
-  @Column()
+  @Column({ nullable: false })
   password: string;
 
-  @Column()
+  @Column({
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+    type: 'timestamp',
+  })
   registered_at: string;
 
-  @Column({ default: null })
+  @Column({ type: 'timestamp', default: null })
   last_login: string;
 
-  @Column({ default: null, length: 100 })
+  @Column({ length: 100, default: null })
   profile_desc: string;
 
   @Column({ default: null })
-  avatar: Buffer;
+  avatar: string;
 
   @Column({ default: false })
   is_banned: boolean;
@@ -41,11 +44,6 @@ export class UserEntity {
   @BeforeInsert()
   async generateId() {
     this.id = v4();
-  }
-
-  @BeforeInsert()
-  async saveRegistrationTime() {
-    this.registered_at = `${Date.now()}`;
   }
 
   @BeforeInsert()

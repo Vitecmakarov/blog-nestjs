@@ -1,28 +1,38 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import { v4 } from 'uuid';
 
 @Entity('post')
 export class PostEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column()
+  @Column({ nullable: false })
   user_id: string;
 
-  @Column({ length: 20 })
+  @Column({ length: 100, nullable: false })
   title: string;
 
-  @Column()
-  attachments: Buffer;
+  @Column({ default: null })
+  attachments: string;
 
-  @Column({ length: 500 })
+  @Column({ nullable: false })
   content: string;
 
-  @Column()
+  @Column({
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+    type: 'timestamp',
+  })
   created_at: string;
 
-  @Column()
+  @Column({ type: 'timestamp', default: null })
   updated_at: string;
 
-  @Column()
+  @Column({ type: 'timestamp', default: null })
   published_at: string;
+
+  @BeforeInsert()
+  async generateId() {
+    this.id = v4();
+  }
 }
