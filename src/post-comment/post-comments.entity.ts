@@ -1,16 +1,29 @@
-import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  BeforeInsert,
+  ManyToOne,
+  JoinTable,
+} from 'typeorm';
+
 import { v4 } from 'uuid';
 
+import { UsersEntity } from '../user/users.entity';
+import { PostsEntity } from '../post/posts.entity';
+
 @Entity('post-comment')
-export class PostCommentEntity {
+export class PostCommentsEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: false })
-  userId: string;
+  @ManyToOne(() => UsersEntity, (user) => user.created_comments)
+  @JoinTable()
+  user: UsersEntity;
 
-  @Column({ nullable: false })
-  postId: string;
+  @ManyToOne(() => PostsEntity, (post) => post.comments)
+  @JoinTable()
+  post: PostsEntity;
 
   @Column({ default: null })
   images: string;

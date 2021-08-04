@@ -4,26 +4,42 @@ import {
   PrimaryColumn,
   BeforeInsert,
   ManyToMany,
+  ManyToOne,
+  JoinTable,
+  OneToMany,
 } from 'typeorm';
+
 import { v4 } from 'uuid';
+
 import { CategoriesEntity } from '../category/categories.entity';
+import { UsersEntity } from '../user/users.entity';
+import { PostCommentsEntity } from '../post-comment/post-comments.entity';
 
 @Entity('post')
 export class PostsEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: false })
-  user_id: string;
-
-  @Column({ length: 100, nullable: false })
+  @Column({ nullable: false, length: 100 })
   title: string;
 
-  @Column({ default: null })
+  @Column({ nullable: true })
   images: string;
 
   @Column({ nullable: false })
   content: string;
+
+  @ManyToOne(() => UsersEntity, (user) => user.created_posts)
+  @JoinTable()
+  user: UsersEntity;
+
+  @ManyToMany(() => CategoriesEntity, (category) => category.posts)
+  @JoinTable()
+  categories: CategoriesEntity[];
+
+  @OneToMany(() => PostCommentsEntity, (comment) => comment.post)
+  @JoinTable()
+  comments: PostCommentsEntity[];
 
   @Column({
     nullable: false,
@@ -32,14 +48,11 @@ export class PostsEntity {
   })
   created_at: string;
 
-  @Column({ type: 'timestamp', default: null })
+  @Column({ nullable: true, type: 'timestamp' })
   updated_at: string;
 
-  @Column({ type: 'timestamp', default: null })
+  @Column({ nullable: true, type: 'timestamp' })
   published_at: string;
-
-  @ManyToMany(() => CategoriesEntity, (category) => category.posts)
-  categories: CategoriesEntity[];
 
   @BeforeInsert()
   async generateId() {

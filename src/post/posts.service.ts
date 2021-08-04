@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreatePostDto, UpdatePostDto, Action } from './dto/posts.dto';
 import { PostsEntity } from './posts.entity';
 import { CategoriesEntity } from '../category/categories.entity';
+import { UsersEntity } from '../user/users.entity';
 
 @Injectable()
 export class PostsService {
@@ -12,14 +13,19 @@ export class PostsService {
     private postsRepository: Repository<PostsEntity>,
     @InjectRepository(CategoriesEntity)
     private categoriesRepository: Repository<CategoriesEntity>,
+    @InjectRepository(UsersEntity)
+    private usersRepository: Repository<UsersEntity>,
   ) {}
 
   async create(data: CreatePostDto): Promise<void> {
-    const { category_id, ...postData } = data;
+    const { category_ids, user_id, ...postData } = data;
 
     const post = this.postsRepository.create(postData);
+
+    post.user = await this.usersRepository.findOne(user_id);
+
     post.categories = await Promise.all(
-      category_id.map(async (categoryId) => {
+      category_ids.map(async (categoryId) => {
         return await this.categoriesRepository.findOne(categoryId);
       }),
     );
@@ -29,13 +35,27 @@ export class PostsService {
 
   async getAll(): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
-      relations: ['categories'],
+      relations: ['categories', 'user', 'comments'],
     });
   }
 
   async getById(id: string): Promise<PostsEntity> {
     return await this.postsRepository.findOne(id, {
-      relations: ['categories'],
+      relations: ['categories', 'user', 'comments'],
+    });
+  }
+
+  async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
+    return await this.postsRepository.find({
+      where: { categories: { id: categoryId } },
+      relations: ['categories', 'user', 'comments'],
+    });
+  }
+
+  async getAllByUserId(userId: string): Promise<PostsEntity[]> {
+    return await this.postsRepository.find({
+      where: { user: { id: userId } },
+      relations: ['categories', 'user', 'comments'],
     });
   }
 

@@ -1,5 +1,4 @@
 import {
-  ArrayMaxSize,
   ArrayMinSize,
   IsArray,
   IsString,
@@ -10,12 +9,12 @@ import { PostsEntity } from '../posts.entity';
 
 export class CreatePostDto {
   @IsString()
-  @IsUUID()
+  @IsUUID(4)
   user_id: string;
 
   @IsArray()
   @ArrayMinSize(1)
-  category_id: Array<string>;
+  category_ids: Array<string>;
 
   @IsString()
   @MaxLength(100)
@@ -31,7 +30,6 @@ export class CreatePostDto {
 export class UpdatePostDto {
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(10)
   category_action?: Array<categoryAction>;
 
   @IsString()
@@ -53,7 +51,7 @@ export interface ResponseToClient {
 
 export interface categoryAction {
   type: Action;
-  category_id: string;
+  category_id: number;
 }
 
 export enum Action {

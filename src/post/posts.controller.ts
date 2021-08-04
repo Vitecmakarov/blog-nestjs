@@ -59,11 +59,13 @@ export class PostsController {
     }
   }
 
-  @Get('all')
-  async getAllPosts(): Promise<ResponseToClient> {
+  @Get('category/:id')
+  async getPostsByCategoryId(
+    @Param('id') id: string,
+  ): Promise<ResponseToClient> {
     try {
-      const post = await this.postsService.getAll();
-      if (!post) {
+      const posts = await this.postsService.getAllByCategoryId(id);
+      if (!posts) {
         return {
           status_code: HttpStatus.NOT_FOUND,
           message: 'No posts!',
@@ -72,7 +74,53 @@ export class PostsController {
       return {
         status_code: HttpStatus.OK,
         message: 'Posts fetched successfully!',
-        data: post,
+        data: posts,
+      };
+    } catch (e) {
+      return {
+        status_code: e.code,
+        message: e.message,
+      };
+    }
+  }
+
+  @Get('user/:id')
+  async getPostsByUserId(@Param('id') id: string): Promise<ResponseToClient> {
+    try {
+      const posts = await this.postsService.getAllByUserId(id);
+      if (!posts) {
+        return {
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'No posts!',
+        };
+      }
+      return {
+        status_code: HttpStatus.OK,
+        message: 'Posts fetched successfully!',
+        data: posts,
+      };
+    } catch (e) {
+      return {
+        status_code: e.code,
+        message: e.message,
+      };
+    }
+  }
+
+  @Get('all')
+  async getAllPosts(): Promise<ResponseToClient> {
+    try {
+      const posts = await this.postsService.getAll();
+      if (!posts) {
+        return {
+          status_code: HttpStatus.NOT_FOUND,
+          message: 'No posts!',
+        };
+      }
+      return {
+        status_code: HttpStatus.OK,
+        message: 'Posts fetched successfully!',
+        data: posts,
       };
     } catch (e) {
       return {

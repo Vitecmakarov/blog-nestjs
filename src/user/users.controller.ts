@@ -138,8 +138,8 @@ export class UsersController {
   @Get('all')
   async getAllUsers(): Promise<ResponseToClient> {
     try {
-      const user = await this.usersService.getAll();
-      if (user.length === 0) {
+      const users = await this.usersService.getAll();
+      if (users.length === 0) {
         return {
           status_code: HttpStatus.NOT_FOUND,
           message: 'No founded users!',
@@ -148,7 +148,7 @@ export class UsersController {
       return {
         status_code: HttpStatus.OK,
         message: 'Users fetched successfully!',
-        data: user,
+        data: users,
       };
     } catch (e) {
       return {

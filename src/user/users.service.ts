@@ -17,7 +17,9 @@ export class UsersService {
   }
 
   async getById(id: string): Promise<UsersEntity> {
-    return await this.usersRepository.findOne(id);
+    return await this.usersRepository.findOne(id, {
+      relations: ['created_posts', 'created_categories', 'created_comments'],
+    });
   }
 
   async update(id: string, data: UpdateUserDto): Promise<void> {
@@ -38,6 +40,8 @@ export class UsersService {
 
   // Only for development!
   async getAll(): Promise<UsersEntity[]> {
-    return await this.usersRepository.find();
+    return await this.usersRepository.find({
+      relations: ['created_posts', 'created_categories', 'created_comments'],
+    });
   }
 }
