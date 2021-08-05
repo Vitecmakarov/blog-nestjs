@@ -17,11 +17,17 @@ export class PostCommentsEntity {
   @PrimaryColumn()
   id: string;
 
-  @ManyToOne(() => UsersEntity, (user) => user.created_comments)
+  @ManyToOne(() => UsersEntity, (user) => user.created_comments, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinTable()
   user: UsersEntity;
 
-  @ManyToOne(() => PostsEntity, (post) => post.comments)
+  @ManyToOne(() => PostsEntity, (post) => post.comments, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinTable()
   post: PostsEntity;
 

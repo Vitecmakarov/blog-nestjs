@@ -17,7 +17,7 @@ import { PostsEntity } from './posts.entity';
 export class PostsController {
   constructor(private postsService: PostsService) {}
 
-  @Post()
+  @Post('create')
   async createPost(@Body() data: CreatePostDto): Promise<void> {
     await this.postsService.create(data);
   }

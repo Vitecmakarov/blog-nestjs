@@ -18,11 +18,17 @@ export class CategoriesEntity {
   @Column({ nullable: false, length: 100 })
   title: string;
 
-  @ManyToOne(() => UsersEntity, (user) => user.created_categories)
+  @ManyToOne(() => UsersEntity, (user) => user.created_categories, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinTable()
   user: UsersEntity;
 
-  @ManyToMany(() => PostsEntity, (posts) => posts.categories)
+  @ManyToMany(() => PostsEntity, (posts) => posts.categories, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinTable()
   posts: PostsEntity[];
 }
