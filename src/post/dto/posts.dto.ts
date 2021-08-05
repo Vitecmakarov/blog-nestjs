@@ -5,7 +5,6 @@ import {
   IsUUID,
   MaxLength,
 } from 'class-validator';
-import { PostsEntity } from '../posts.entity';
 
 export class CreatePostDto {
   @IsString()
@@ -41,12 +40,6 @@ export class UpdatePostDto {
 
   @IsString()
   images?: string;
-}
-
-export interface ResponseToClient {
-  status_code: number;
-  message: string;
-  data?: PostsEntity[];
 }
 
 export interface categoryAction {

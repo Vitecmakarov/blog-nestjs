@@ -6,155 +6,67 @@ import {
   Delete,
   Body,
   Param,
-  HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { UsersService } from './users.service';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  ResponseToClient,
-} from './dto/users.dto';
+import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
+import { UsersEntity } from './users.entity';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Post('register')
-  async registerUser(@Body() data: CreateUserDto): Promise<ResponseToClient> {
-    try {
-      await this.usersService.create(data);
-      return {
-        status_code: HttpStatus.OK,
-        message: 'Registration process succeed!',
-      };
-    } catch (e) {
-      return {
-        status_code: e.code,
-        message: e.message,
-      };
-    }
+  async registerUser(@Body() data: CreateUserDto): Promise<void> {
+    await this.usersService.create(data);
   }
 
   @Patch('user/:id')
   async updateUser(
     @Param('id') id: string,
     @Body() data: UpdateUserDto,
-  ): Promise<ResponseToClient> {
-    try {
-      const user = await this.usersService.getById(id);
-      if (!user) {
-        return {
-          status_code: HttpStatus.NOT_FOUND,
-          message: 'User is not exist!',
-        };
-      }
-      await this.usersService.update(id, data);
-      return {
-        status_code: HttpStatus.OK,
-        message: 'User updated successfully!',
-      };
-    } catch (e) {
-      return {
-        status_code: e.code,
-        message: e.message,
-      };
+  ): Promise<void> {
+    const user = await this.usersService.getById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    await this.usersService.update(id, data);
   }
 
   @Patch('pass/change/:id')
   async changePassword(
     @Param('id') id: string,
     @Body() password: string,
-  ): Promise<ResponseToClient> {
-    try {
-      const user = await this.usersService.getById(id);
-      if (!user) {
-        return {
-          status_code: HttpStatus.NOT_FOUND,
-          message: 'User is not exist!',
-        };
-      }
-      await this.usersService.updatePassword(id, password);
-      return {
-        status_code: HttpStatus.OK,
-        message: 'User password updated successfully!',
-      };
-    } catch (e) {
-      return {
-        status_code: e.code,
-        message: e.message,
-      };
+  ): Promise<void> {
+    const user = await this.usersService.getById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    await this.usersService.updatePassword(id, password);
   }
 
   @Get('user/:id')
-  async getUserById(@Param('id') id: string): Promise<ResponseToClient> {
-    try {
-      const user = await this.usersService.getById(id);
-      if (!user) {
-        return {
-          status_code: HttpStatus.NOT_FOUND,
-          message: 'User is not exist!',
-        };
-      }
-      return {
-        status_code: HttpStatus.OK,
-        message: 'User fetched successfully!',
-        data: [user],
-      };
-    } catch (e) {
-      return {
-        status_code: e.code,
-        message: e.message,
-      };
+  async getUserById(@Param('id') id: string): Promise<UsersEntity> {
+    const user = await this.usersService.getById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    return user;
   }
 
   @Delete('user/:id')
-  async deleteUser(@Param('id') id: string): Promise<ResponseToClient> {
-    try {
-      const user = await this.usersService.getById(id);
-      if (!user) {
-        return {
-          status_code: HttpStatus.NOT_FOUND,
-          message: 'User is not exist!',
-        };
-      }
-      await this.usersService.remove(id);
-      return {
-        status_code: HttpStatus.OK,
-        message: 'User deleted successfully!',
-      };
-    } catch (e) {
-      return {
-        status_code: e.code,
-        message: e.message,
-      };
+  async deleteUser(@Param('id') id: string): Promise<void> {
+    const user = await this.usersService.getById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    await this.usersService.remove(id);
   }
 
   // Only for development!
   @Get('all')
-  async getAllUsers(): Promise<ResponseToClient> {
-    try {
-      const users = await this.usersService.getAll();
-      if (users.length === 0) {
-        return {
-          status_code: HttpStatus.NOT_FOUND,
-          message: 'No founded users!',
-        };
-      }
-      return {
-        status_code: HttpStatus.OK,
-        message: 'Users fetched successfully!',
-        data: users,
-      };
-    } catch (e) {
-      return {
-        status_code: e.code,
-        message: e.message,
-      };
-    }
+  async getAllUsers(): Promise<UsersEntity[]> {
+    return await this.usersService.getAll();
   }
 }

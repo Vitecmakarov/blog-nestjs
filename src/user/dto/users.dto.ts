@@ -1,5 +1,4 @@
 import { IsString, IsMobilePhone, IsEmail, MaxLength } from 'class-validator';
-import { UsersEntity } from '../users.entity';
 
 export class CreateUserDto {
   @IsString()
@@ -38,10 +37,4 @@ export class UpdateUserDto {
 
   @IsString()
   avatar?: string;
-}
-
-export interface ResponseToClient {
-  status_code: number;
-  message: string;
-  data?: UsersEntity[];
 }

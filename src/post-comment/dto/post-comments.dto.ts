@@ -1,5 +1,4 @@
 import { IsString, IsUUID } from 'class-validator';
-import { PostCommentsEntity } from '../post-comments.entity';
 
 export class CreatePostCommentDto {
   @IsString()
@@ -23,10 +22,4 @@ export class UpdatePostComment {
 
   @IsString()
   images?: string;
-}
-
-export interface ResponseToClient {
-  status_code: number;
-  message: string;
-  data?: PostCommentsEntity[];
 }

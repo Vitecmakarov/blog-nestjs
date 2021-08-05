@@ -59,7 +59,7 @@ export class PostsService {
     });
   }
 
-  async update(id: string, data: UpdatePostDto): Promise<void> {
+  async update(id: string, data: UpdatePostDto): Promise<PostsEntity> {
     const { category_action, ...postData } = data;
     const post = await this.postsRepository.findOne();
 
@@ -83,10 +83,12 @@ export class PostsService {
       }),
     );
 
-    await this.postsRepository.save({ ...post, ...postData });
+    return await this.postsRepository.save({ ...post, ...postData });
   }
 
   async remove(id: string): Promise<void> {
+    // TODO: не могу удалить пост т.к. не удаляется из category_post_post и
+    // возникает ошибка foreign key constraint fails
     await this.postsRepository.delete(id);
   }
 }
