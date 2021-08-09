@@ -22,6 +22,7 @@ export class ImagesService {
   }
 
   async create(imageData: CreateImageDto): Promise<ImagesEntity> {
+    // size можно вычислять на основании размера data
     const { filename, size, data, mimetype } = imageData;
 
     const b64Data = data.replace(/^data:image\/\w+;base64,/, '');
@@ -34,6 +35,7 @@ export class ImagesService {
 
     const pathToFile = `${IMAGES_DIR}/${fileDirToSave}/${fileNameToSave}.${fileExtension}`;
 
+    // мы должны подождать пока файл запишется и только в случае успеха делать запись в БД.
     writeFile(pathToFile, b64Data, { encoding: 'base64' }, (err) => {
       throw new Error(err.message);
     });
@@ -64,6 +66,8 @@ export class ImagesService {
 
   async remove(id: string): Promise<void> {
     const image = await this.imagesRepository.findOne(id);
+    // unlink должен быть в промисе
+    // например так: https://nodejs.org/dist/latest-v8.x/docs/api/util.html#util_util_promisify_original
     unlink(image.path, (err) => {
       if (err) {
         console.error(err);
@@ -76,6 +80,7 @@ export class ImagesService {
 
   private async _createImageDirIfNotExist(filename: string): Promise<string> {
     const fileDir = `${IMAGES_DIR}/${filename.slice(0, 2)}`;
+    // access и mkdir нужно завернуть в Promise
     access(fileDir, function (err) {
       if (err && err.code === 'ENOENT') {
         mkdir(fileDir, () => {
