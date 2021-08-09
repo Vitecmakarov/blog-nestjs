@@ -1,34 +1,40 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   ManyToMany,
   ManyToOne,
   JoinTable,
+  BeforeInsert,
 } from 'typeorm';
+
+import { v4 } from 'uuid';
 
 import { PostsEntity } from '../post/posts.entity';
 import { UsersEntity } from '../user/users.entity';
 
 @Entity('category')
 export class CategoriesEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id: string;
 
   @Column({ nullable: false, length: 100 })
   title: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_categories, {
     onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
   })
   @JoinTable()
   user: UsersEntity;
 
   @ManyToMany(() => PostsEntity, (posts) => posts.categories, {
     onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
   })
   @JoinTable()
   posts: PostsEntity[];
+
+  @BeforeInsert()
+  async generateId() {
+    this.id = v4();
+  }
 }

@@ -5,15 +5,16 @@ import {
   BeforeInsert,
   ManyToMany,
   ManyToOne,
-  JoinTable,
   OneToMany,
+  JoinTable,
 } from 'typeorm';
 
 import { v4 } from 'uuid';
 
 import { CategoriesEntity } from '../category/categories.entity';
+import { CommentsEntity } from '../comment/comments.entity';
+import { ImagesEntity } from '../image/images.entity';
 import { UsersEntity } from '../user/users.entity';
-import { PostCommentsEntity } from '../post-comment/post-comments.entity';
 
 @Entity('post')
 export class PostsEntity {
@@ -23,29 +24,28 @@ export class PostsEntity {
   @Column({ nullable: false, length: 100 })
   title: string;
 
-  @Column({ nullable: true })
-  images: string;
-
   @Column({ nullable: false })
   content: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_posts, {
     onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
   })
   @JoinTable()
   user: UsersEntity;
 
   @ManyToMany(() => CategoriesEntity, (category) => category.posts, {
     onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
   })
   @JoinTable()
   categories: CategoriesEntity[];
 
-  @OneToMany(() => PostCommentsEntity, (comment) => comment.post)
+  @OneToMany(() => ImagesEntity, (image) => image.user)
   @JoinTable()
-  comments: PostCommentsEntity[];
+  images: ImagesEntity[];
+
+  @OneToMany(() => CommentsEntity, (comment) => comment.post)
+  @JoinTable()
+  comments: CommentsEntity[];
 
   @Column({
     nullable: false,

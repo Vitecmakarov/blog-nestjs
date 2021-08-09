@@ -6,6 +6,8 @@ import {
   MaxLength,
 } from 'class-validator';
 
+import { CreateImageDto, UpdateImageDto } from '../../image/dto/images.dto';
+
 export class CreatePostDto {
   @IsString()
   @IsUUID(4)
@@ -22,14 +24,13 @@ export class CreatePostDto {
   @IsString()
   content: string;
 
-  @IsString()
-  images?: string;
+  @IsArray()
+  images?: Array<CreateImageDto>;
 }
 
 export class UpdatePostDto {
   @IsArray()
-  @ArrayMinSize(1)
-  category_action?: Array<categoryAction>;
+  category_actions?: Array<UpdateCategoryAction>;
 
   @IsString()
   @MaxLength(100)
@@ -38,13 +39,13 @@ export class UpdatePostDto {
   @IsString()
   content?: string;
 
-  @IsString()
-  images?: string;
+  @IsArray()
+  image_actions?: Array<UpdateImageDto>;
 }
 
-export interface categoryAction {
+export interface UpdateCategoryAction {
   type: Action;
-  category_id: number;
+  category_id: string;
 }
 
 export enum Action {

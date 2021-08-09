@@ -1,4 +1,12 @@
-import { IsString, IsMobilePhone, IsEmail, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsMobilePhone,
+  IsEmail,
+  MaxLength,
+  IsArray,
+} from 'class-validator';
+
+import { UpdateImageDto } from '../../image/dto/images.dto';
 
 export class CreateUserDto {
   @IsString()
@@ -35,6 +43,6 @@ export class UpdateUserDto {
   @MaxLength(100)
   profile_desc?: string;
 
-  @IsString()
-  avatar?: string;
+  @IsArray()
+  avatar_actions?: Array<UpdateImageDto>;
 }

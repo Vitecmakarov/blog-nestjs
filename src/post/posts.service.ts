@@ -1,73 +1,79 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { Action as ImageAction, CreateImageDto } from '../image/dto/images.dto';
 import { CreatePostDto, UpdatePostDto, Action } from './dto/posts.dto';
+
 import { PostsEntity } from './posts.entity';
-import { CategoriesEntity } from '../category/categories.entity';
-import { UsersEntity } from '../user/users.entity';
+
+import { ImagesService } from '../image/images.service';
+import { UsersService } from '../user/users.service';
+import { CategoriesService } from '../category/categories.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(PostsEntity)
-    private postsRepository: Repository<PostsEntity>,
-    @InjectRepository(CategoriesEntity)
-    private categoriesRepository: Repository<CategoriesEntity>,
-    @InjectRepository(UsersEntity)
-    private usersRepository: Repository<UsersEntity>,
+    private readonly postsRepository: Repository<PostsEntity>,
+    private readonly categoriesService: CategoriesService,
+    private readonly usersService: UsersService,
+    private readonly imagesService: ImagesService,
   ) {}
 
   async create(data: CreatePostDto): Promise<void> {
-    const { category_ids, user_id, ...postData } = data;
+    const { category_ids, user_id, images, ...postData } = data;
 
     const post = this.postsRepository.create(postData);
 
-    post.user = await this.usersRepository.findOne(user_id);
+    post.user = await this.usersService.getById(user_id);
 
-    post.categories = await Promise.all(
-      category_ids.map(async (categoryId) => {
-        return await this.categoriesRepository.findOne(categoryId);
-      }),
-    );
+    category_ids.map(async (categoryId) => {
+      post.categories.push(await this.categoriesService.getById(categoryId));
+    });
+
+    images.map(async (image) => {
+      post.images.push(await this.imagesService.create(image));
+    });
 
     await this.postsRepository.save(post);
   }
 
   async getAll(): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
-      relations: ['categories', 'user', 'comments'],
+      relations: ['categories', 'user', 'comments', 'images'],
     });
   }
 
   async getById(id: string): Promise<PostsEntity> {
     return await this.postsRepository.findOne(id, {
-      relations: ['categories', 'user', 'comments'],
+      relations: ['categories', 'user', 'comments', 'images'],
     });
   }
 
   async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
       where: { categories: { id: categoryId } },
-      relations: ['categories', 'user', 'comments'],
+      relations: ['categories', 'user', 'comments', 'images'],
     });
   }
 
   async getAllByUserId(userId: string): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
       where: { user: { id: userId } },
-      relations: ['categories', 'user', 'comments'],
+      relations: ['categories', 'user', 'comments', 'images'],
     });
   }
 
   async update(id: string, data: UpdatePostDto): Promise<PostsEntity> {
-    const { category_action, ...postData } = data;
+    const { category_actions, image_actions, ...postData } = data;
     const post = await this.postsRepository.findOne();
 
     await Promise.all(
-      category_action.map(async (action) => {
+      category_actions.map(async (action) => {
         switch (action.type) {
           case Action.ADD:
-            const category = await this.categoriesRepository.findOne(
+            const category = await this.categoriesService.getById(
               action.category_id,
             );
             post.categories.push(category);
@@ -83,12 +89,38 @@ export class PostsService {
       }),
     );
 
+    await Promise.all(
+      image_actions.map(async (image_action) => {
+        switch (image_action.action) {
+          case ImageAction.ADD:
+            const image = await this.imagesService.create(
+              image_action.data as CreateImageDto,
+            );
+            post.images.push(image);
+            break;
+          case ImageAction.DELETE:
+            const id = image_action.data as string;
+            post.images = post.images.filter((image) => {
+              return image.id !== id;
+            });
+            await this.imagesService.remove(id);
+            break;
+          default:
+            return;
+        }
+      }),
+    );
+
     return await this.postsRepository.save({ ...post, ...postData });
   }
 
   async remove(id: string): Promise<void> {
-    // TODO: не могу удалить пост т.к. не удаляется из category_post_post и
-    // возникает ошибка foreign key constraint fails
+    const { images } = await this.postsRepository.findOne(id);
+    await Promise.all(
+      images.map(async (image) => {
+        await this.imagesService.remove(image.id);
+      }),
+    );
     await this.postsRepository.delete(id);
   }
 }

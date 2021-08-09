@@ -9,22 +9,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { CategoriesService } from './categories.service';
-
 import { CreateCategoriesDto, UpdateCategoriesDto } from './dto/categories.dto';
 import { CategoriesEntity } from './categories.entity';
+import { CategoriesService } from './categories.service';
 
 @Controller('categories')
 export class CategoriesController {
-  constructor(private categoriesService: CategoriesService) {}
-
-  @Post('create')
-  async createCategory(@Body() data: CreateCategoriesDto): Promise<void> {
-    await this.categoriesService.create(data);
-  }
+  constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get('category/:id')
-  async getCategoryById(@Param('id') id: number): Promise<CategoriesEntity> {
+  async getCategoryById(@Param('id') id: string): Promise<CategoriesEntity> {
     const category = await this.categoriesService.getById(id);
     if (!category) {
       throw new NotFoundException('Category not found');
@@ -39,21 +33,22 @@ export class CategoriesController {
     return await this.categoriesService.getAllByUserId(id);
   }
 
-  @Get('title/:title')
+  @Get('title/:user&:title')
   async getCategoriesByTitle(
+    @Param('user') user: string,
     @Param('title') title: string,
   ): Promise<CategoriesEntity[]> {
-    return await this.categoriesService.getAllByTitle(title);
+    return await this.categoriesService.getAllByTitle(user, title);
   }
 
-  @Get('all')
-  async getAllCategories(): Promise<CategoriesEntity[]> {
-    return await this.categoriesService.getAll();
+  @Post('create')
+  async createCategory(@Body() data: CreateCategoriesDto): Promise<void> {
+    await this.categoriesService.create(data);
   }
 
   @Patch('category/:id')
   async updateCategory(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() data: UpdateCategoriesDto,
   ): Promise<void> {
     const category = await this.categoriesService.getById(id);
@@ -64,11 +59,17 @@ export class CategoriesController {
   }
 
   @Delete('category/:id')
-  async deleteCategory(@Param('id') id: number): Promise<void> {
+  async deleteCategory(@Param('id') id: string): Promise<void> {
     const category = await this.categoriesService.getById(id);
     if (!category) {
       throw new NotFoundException('Category not found');
     }
     await this.categoriesService.remove(id);
+  }
+
+  // Only for develop
+  @Get('all')
+  async getAllCategories(): Promise<CategoriesEntity[]> {
+    return await this.categoriesService.getAll();
   }
 }

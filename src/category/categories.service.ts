@@ -1,19 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getRepository, Repository } from "typeorm";
+import { Repository } from 'typeorm';
 
 import { CreateCategoriesDto, UpdateCategoriesDto } from './dto/categories.dto';
-
 import { CategoriesEntity } from './categories.entity';
-import { UsersEntity } from '../user/users.entity';
+import { UsersService } from '../user/users.service';
 
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(CategoriesEntity)
-    private categoriesRepository: Repository<CategoriesEntity>,
-    @InjectRepository(UsersEntity)
-    private usersRepository: Repository<UsersEntity>,
+    private readonly categoriesRepository: Repository<CategoriesEntity>,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(data: CreateCategoriesDto): Promise<void> {
@@ -21,18 +19,16 @@ export class CategoriesService {
 
     const category = this.categoriesRepository.create(categoryData);
 
-    category.user = await this.usersRepository.findOne(user_id);
+    category.user = await this.usersService.getById(user_id);
+
+    if (!category.user) {
+      throw new Error('User is not exist');
+    }
 
     await this.categoriesRepository.save(category);
   }
 
-  async getAll(): Promise<CategoriesEntity[]> {
-    return await this.categoriesRepository.find({
-      relations: ['user', 'posts'],
-    });
-  }
-
-  async getById(id: number): Promise<CategoriesEntity> {
+  async getById(id: string): Promise<CategoriesEntity> {
     return await this.categoriesRepository.findOne(id, {
       relations: ['user', 'posts'],
     });
@@ -45,18 +41,25 @@ export class CategoriesService {
     });
   }
 
-  async getAllByTitle(title: string): Promise<CategoriesEntity[]> {
+  async getAllByTitle(id: string, title: string): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
-      where: { title: title },
+      where: [{ user: { id: id } }, { title: title }],
       relations: ['user', 'posts'],
     });
   }
 
-  async update(id: number, data: UpdateCategoriesDto): Promise<void> {
+  async update(id: string, data: UpdateCategoriesDto): Promise<void> {
     await this.categoriesRepository.update({ id }, data);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     await this.categoriesRepository.delete(id);
+  }
+
+  // Only for develop
+  async getAll(): Promise<CategoriesEntity[]> {
+    return await this.categoriesRepository.find({
+      relations: ['user', 'posts'],
+    });
   }
 }

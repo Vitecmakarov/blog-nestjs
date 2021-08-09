@@ -9,18 +9,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { PostsService } from './posts.service';
 import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
 import { PostsEntity } from './posts.entity';
+import { PostsService } from './posts.service';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private postsService: PostsService) {}
-
-  @Post('create')
-  async createPost(@Body() data: CreatePostDto): Promise<void> {
-    await this.postsService.create(data);
-  }
+  constructor(private readonly postsService: PostsService) {}
 
   @Get('post/:id')
   async getPostById(@Param('id') id: string): Promise<PostsEntity> {
@@ -44,6 +39,11 @@ export class PostsController {
   @Get('all')
   async getAllPosts(): Promise<PostsEntity[]> {
     return await this.postsService.getAll();
+  }
+
+  @Post('create')
+  async createPost(@Body() data: CreatePostDto): Promise<void> {
+    await this.postsService.create(data);
   }
 
   @Patch('post/:id')

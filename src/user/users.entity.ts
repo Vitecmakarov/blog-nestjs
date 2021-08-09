@@ -12,7 +12,8 @@ import * as bcrypt from 'bcrypt';
 
 import { PostsEntity } from '../post/posts.entity';
 import { CategoriesEntity } from '../category/categories.entity';
-import { PostCommentsEntity } from '../post-comment/post-comments.entity';
+import { CommentsEntity } from '../comment/comments.entity';
+import { ImagesEntity } from '../image/images.entity';
 
 @Entity('user')
 export class UsersEntity {
@@ -42,27 +43,28 @@ export class UsersEntity {
   @JoinTable()
   created_categories: CategoriesEntity[];
 
-  @OneToMany(() => PostCommentsEntity, (comment) => comment.user)
+  @OneToMany(() => CommentsEntity, (comment) => comment.user)
   @JoinTable()
-  created_comments: PostCommentsEntity[];
+  created_comments: CommentsEntity[];
+
+  @OneToMany(() => ImagesEntity, (image) => image.user)
+  @JoinTable()
+  avatars: ImagesEntity[];
 
   @Column({
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
     type: 'timestamp',
   })
-  registered_at: string;
+  register_at: string;
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ nullable: true, type: 'timestamp' }) //TODO
   last_login: string;
 
   @Column({ nullable: true, length: 100 })
   profile_desc: string;
 
-  @Column({ nullable: true })
-  avatar: string;
-
-  @Column({ nullable: false, default: false })
+  @Column({ nullable: false, default: false }) //TODO
   is_banned: boolean;
 
   @BeforeInsert()
