@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Action as ImageAction, CreateImageDto } from '../image/dto/images.dto';
-import { CreatePostDto, UpdatePostDto, Action } from './dto/posts.dto';
+import { ImageAction, CreateImageDto } from '../image/dto/images.dto';
+import { CreatePostDto, UpdatePostDto, CategoryAction } from './dto/posts.dto';
 
 import { PostsEntity } from './posts.entity';
 
@@ -72,13 +72,13 @@ export class PostsService {
     await Promise.all(
       category_actions.map(async (action) => {
         switch (action.type) {
-          case Action.ADD:
+          case CategoryAction.ADD:
             const category = await this.categoriesService.getById(
               action.category_id,
             );
             post.categories.push(category);
             break;
-          case Action.DELETE:
+          case CategoryAction.DELETE:
             post.categories = post.categories.filter((category) => {
               return category.id !== action.category_id;
             });

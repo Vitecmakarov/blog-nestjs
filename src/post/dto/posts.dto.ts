@@ -44,11 +44,11 @@ export class UpdatePostDto {
 }
 
 export interface UpdateCategoryAction {
-  type: Action;
+  type: CategoryAction;
   category_id: string;
 }
 
-export enum Action {
+export enum CategoryAction {
   ADD,
   DELETE,
 }

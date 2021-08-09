@@ -1,1 +1,3 @@
-export const IMAGES_DIR = `${__dirname}/images`;
+import { dirname } from 'path';
+
+export const IMAGES_DIR = dirname(require.main.filename);

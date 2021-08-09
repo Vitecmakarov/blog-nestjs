@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Action, CreateImageDto } from '../image/dto/images.dto';
+import { ImageAction, CreateImageDto } from '../image/dto/images.dto';
 import { CreatePostCommentDto, UpdatePostCommentDto } from './dto/comments.dto';
 
 import { CommentsEntity } from './comments.entity';
@@ -73,13 +73,13 @@ export class CommentsService {
       await Promise.all(
         image_actions.map(async (image_action) => {
           switch (image_action.action) {
-            case Action.ADD:
+            case ImageAction.ADD:
               const image = await this.imagesService.create(
                 image_action.data as CreateImageDto,
               );
               comment.images.push(image);
               break;
-            case Action.DELETE:
+            case ImageAction.DELETE:
               const id = image_action.data as string;
               comment.images = comment.images.filter((image) => {
                 return image.id !== id;

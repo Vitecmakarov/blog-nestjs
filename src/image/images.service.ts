@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { createHash } from 'crypto';
 import { extension } from 'mime-types';
+import { promisify } from 'util';
 import { writeFile, existsSync, mkdirSync, access, mkdir, unlink } from 'fs';
 
 import { CreateImageDto } from './dto/images.dto';
@@ -22,21 +23,27 @@ export class ImagesService {
   }
 
   async create(imageData: CreateImageDto): Promise<ImagesEntity> {
-    const { filename, size, data, mimetype } = imageData;
+    const { filename, data, type } = imageData;
 
-    const b64Data = data.replace(/^data:image\/\w+;base64,/, '');
+    const buff = Buffer.from(data, 'base64');
+    const size = buff.byteLength;
 
-    const fileExtension = extension(mimetype) as string;
+    const fileExtension = extension(type) as string;
 
     const fileNameToSave = await ImagesService._createImageName(filename);
-
     const fileDirToSave = await this._createImageDirIfNotExist(fileNameToSave);
 
     const pathToFile = `${IMAGES_DIR}/${fileDirToSave}/${fileNameToSave}.${fileExtension}`;
 
-    writeFile(pathToFile, b64Data, { encoding: 'base64' }, (err) => {
-      throw new Error(err.message);
-    });
+    const write = promisify(writeFile);
+
+    await write(pathToFile, buff)
+      .then(() => {
+        console.log(`File ${pathToFile} wrote successfully`);
+      })
+      .catch((err) => {
+        throw new Error(err.message);
+      });
 
     const imageToSave = {
       path: pathToFile,
@@ -64,23 +71,35 @@ export class ImagesService {
 
   async remove(id: string): Promise<void> {
     const image = await this.imagesRepository.findOne(id);
-    unlink(image.path, (err) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log('File removed');
-    });
+
+    const unlinkFile = promisify(unlink);
+
+    await unlinkFile(image.path)
+      .then(() => {
+        console.log(`Image ${image.path} deleted successfully`);
+      })
+      .catch((err) => {
+        throw new Error(err.message);
+      });
+
     await this.imagesRepository.delete(id);
   }
 
   private async _createImageDirIfNotExist(filename: string): Promise<string> {
     const fileDir = `${IMAGES_DIR}/${filename.slice(0, 2)}`;
-    access(fileDir, function (err) {
-      if (err && err.code === 'ENOENT') {
-        mkdir(fileDir, () => {
-          console.log('Directory created');
-        });
+
+    const checkIfDirExist = promisify(access);
+    const createDir = promisify(mkdir);
+
+    await checkIfDirExist(fileDir).catch((err) => {
+      if (err.code === 'ENOENT') {
+        createDir(fileDir)
+          .then(() => {
+            console.log('Directory created');
+          })
+          .catch((err) => {
+            throw new Error(err.message);
+          });
       }
     });
     return fileDir;

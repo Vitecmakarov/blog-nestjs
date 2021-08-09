@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Action, CreateImageDto } from '../image/dto/images.dto';
+import { ImageAction, CreateImageDto } from '../image/dto/images.dto';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 
 import { UsersEntity } from './users.entity';
@@ -40,13 +40,13 @@ export class UsersService {
       await Promise.all(
         avatar_actions.map(async (avatar_action) => {
           switch (avatar_action.action) {
-            case Action.ADD:
+            case ImageAction.ADD:
               const image = await this.imageService.create(
                 avatar_action.data as CreateImageDto,
               );
               user.avatars.push(image);
               break;
-            case Action.DELETE:
+            case ImageAction.DELETE:
               const id = avatar_action.data as string;
               user.avatars = user.avatars.filter((avatar) => {
                 return avatar.id !== id;

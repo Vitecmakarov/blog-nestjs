@@ -18,7 +18,7 @@ export class ImagesEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: false, length: 100 }) // TODO: Thumbnails
+  @Column({ nullable: false, length: 100 })
   path: string;
 
   @Column({ nullable: false })
