@@ -9,3 +9,4 @@ services:
       MYSQL_DATABASE: nestjs_blog
     ports:
       - "3306:3306"
+    command: mysqld --character-set-server=utf8

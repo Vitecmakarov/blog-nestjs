@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -14,42 +14,38 @@ export class CategoriesService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(data: CreateCategoriesDto): Promise<void> {
-    const { user_id, ...categoryData } = data;
+  async create(dataDto: CreateCategoriesDto): Promise<void> {
+    const { userId, ...categoryData } = dataDto;
 
     const category = this.categoriesRepository.create(categoryData);
 
-    category.user = await this.usersService.getById(user_id);
+    category.user = await this.usersService.getById(userId);
 
     if (!category.user) {
-      throw new Error('User is not exist');
+      throw new NotFoundException('User with this id is not exist');
     }
 
     await this.categoriesRepository.save(category);
   }
 
   async getById(id: string): Promise<CategoriesEntity> {
-    return await this.categoriesRepository.findOne(id, {
-      relations: ['user', 'posts'],
-    });
+    return await this.categoriesRepository.findOne(id);
   }
 
   async getAllByUserId(id: string): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
       where: { user: { id: id } },
-      relations: ['user', 'posts'],
     });
   }
 
   async getAllByTitle(id: string, title: string): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
       where: [{ user: { id: id } }, { title: title }],
-      relations: ['user', 'posts'],
     });
   }
 
-  async update(id: string, data: UpdateCategoriesDto): Promise<void> {
-    await this.categoriesRepository.update({ id }, data);
+  async update(id: string, dataDto: UpdateCategoriesDto): Promise<void> {
+    await this.categoriesRepository.update({ id }, dataDto);
   }
 
   async remove(id: string): Promise<void> {
@@ -58,8 +54,6 @@ export class CategoriesService {
 
   // Only for develop
   async getAll(): Promise<CategoriesEntity[]> {
-    return await this.categoriesRepository.find({
-      relations: ['user', 'posts'],
-    });
+    return await this.categoriesRepository.find();
   }
 }

@@ -36,4 +36,8 @@ lerna-debug.log*
 # Lock-files
 package-lock.json
 
+# Dotenv file
 .env
+
+# Images dir
+/images

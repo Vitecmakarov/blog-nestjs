@@ -4,7 +4,6 @@ import {
   PrimaryColumn,
   ManyToOne,
   OneToMany,
-  JoinTable,
   BeforeInsert,
 } from 'typeorm';
 
@@ -14,25 +13,26 @@ import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
 import { ImagesEntity } from '../image/images.entity';
 
-@Entity('comment')
+@Entity('comments')
 export class CommentsEntity {
   @PrimaryColumn()
   id: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_comments, {
+    eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   user: UsersEntity;
 
   @ManyToOne(() => PostsEntity, (post) => post.comments, {
+    eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   post: PostsEntity;
 
-  @OneToMany(() => ImagesEntity, (image) => image.comment)
-  @JoinTable()
+  @OneToMany(() => ImagesEntity, (image) => image.comment, {
+    eager: true,
+  })
   images: ImagesEntity[];
 
   @Column({ nullable: false })
@@ -45,10 +45,10 @@ export class CommentsEntity {
   })
   create_timestamp: string;
 
-  @Column({ type: 'timestamp', default: null })
+  @Column({ type: 'timestamp', nullable: true })
   update_timestamp: string;
 
-  @Column({ type: 'timestamp', default: null })
+  @Column({ type: 'timestamp', nullable: true })
   publish_timestamp: string;
 
   @BeforeInsert()

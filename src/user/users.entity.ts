@@ -4,7 +4,8 @@ import {
   PrimaryColumn,
   BeforeInsert,
   OneToMany,
-  JoinTable,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 import { v4 } from 'uuid';
@@ -15,7 +16,7 @@ import { CategoriesEntity } from '../category/categories.entity';
 import { CommentsEntity } from '../comment/comments.entity';
 import { ImagesEntity } from '../image/images.entity';
 
-@Entity('user')
+@Entity('users')
 export class UsersEntity {
   @PrimaryColumn()
   id: string;
@@ -35,21 +36,27 @@ export class UsersEntity {
   @Column({ nullable: false })
   password: string;
 
-  @OneToMany(() => PostsEntity, (post) => post.user)
-  @JoinTable()
+  @OneToMany(() => PostsEntity, (post) => post.user, {
+    eager: true,
+  })
   created_posts: PostsEntity[];
 
-  @OneToMany(() => CategoriesEntity, (category) => category.user)
-  @JoinTable()
+  @OneToMany(() => CategoriesEntity, (category) => category.user, {
+    eager: true,
+  })
   created_categories: CategoriesEntity[];
 
-  @OneToMany(() => CommentsEntity, (comment) => comment.user)
-  @JoinTable()
+  @OneToMany(() => CommentsEntity, (comment) => comment.user, {
+    eager: true,
+  })
   created_comments: CommentsEntity[];
 
-  @OneToMany(() => ImagesEntity, (image) => image.user)
-  @JoinTable()
-  avatars: ImagesEntity[];
+  @OneToOne(() => ImagesEntity, (image) => image.user, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  avatar: ImagesEntity;
 
   @Column({
     nullable: false,

@@ -2,10 +2,10 @@ import {
   Entity,
   Column,
   PrimaryColumn,
-  BeforeInsert,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  BeforeInsert,
   JoinTable,
 } from 'typeorm';
 
@@ -16,7 +16,7 @@ import { CommentsEntity } from '../comment/comments.entity';
 import { ImagesEntity } from '../image/images.entity';
 import { UsersEntity } from '../user/users.entity';
 
-@Entity('post')
+@Entity('posts')
 export class PostsEntity {
   @PrimaryColumn()
   id: string;
@@ -28,23 +28,25 @@ export class PostsEntity {
   content: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_posts, {
+    eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   user: UsersEntity;
 
   @ManyToMany(() => CategoriesEntity, (category) => category.posts, {
-    onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinTable()
   categories: CategoriesEntity[];
 
-  @OneToMany(() => ImagesEntity, (image) => image.user)
-  @JoinTable()
+  @OneToMany(() => ImagesEntity, (image) => image.post, {
+    eager: true,
+  })
   images: ImagesEntity[];
 
-  @OneToMany(() => CommentsEntity, (comment) => comment.post)
-  @JoinTable()
+  @OneToMany(() => CommentsEntity, (comment) => comment.post, {
+    eager: true,
+  })
   comments: CommentsEntity[];
 
   @Column({

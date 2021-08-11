@@ -1,25 +1,14 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsString, MaxLength, IsMimeType } from 'class-validator';
 
 export class CreateImageDto {
   @IsString()
+  @MaxLength(100)
   filename: string;
 
   @IsString()
   data: string;
 
   @IsString()
+  @IsMimeType()
   type: string;
-}
-
-export class UpdateImageDto {
-  @IsNumber()
-  action: ImageAction;
-
-  @IsString()
-  data: CreateImageDto | string;
-}
-
-export enum ImageAction {
-  ADD,
-  DELETE,
 }

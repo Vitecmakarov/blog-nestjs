@@ -4,7 +4,6 @@ import {
   PrimaryColumn,
   ManyToMany,
   ManyToOne,
-  JoinTable,
   BeforeInsert,
 } from 'typeorm';
 
@@ -13,7 +12,7 @@ import { v4 } from 'uuid';
 import { PostsEntity } from '../post/posts.entity';
 import { UsersEntity } from '../user/users.entity';
 
-@Entity('category')
+@Entity('categories')
 export class CategoriesEntity {
   @PrimaryColumn()
   id: string;
@@ -22,15 +21,14 @@ export class CategoriesEntity {
   title: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_categories, {
+    eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   user: UsersEntity;
 
   @ManyToMany(() => PostsEntity, (posts) => posts.categories, {
-    onDelete: 'CASCADE',
+    eager: true,
   })
-  @JoinTable()
   posts: PostsEntity[];
 
   @BeforeInsert()

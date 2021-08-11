@@ -3,10 +3,10 @@ import {
   IsMobilePhone,
   IsEmail,
   MaxLength,
-  IsArray,
+  IsOptional,
 } from 'class-validator';
 
-import { UpdateImageDto } from '../../image/dto/images.dto';
+import { CreateImageDto } from '../../image/dto/images.dto';
 
 export class CreateUserDto {
   @IsString()
@@ -31,18 +31,21 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
+  @IsOptional()
   @IsString()
   @MaxLength(50)
   first_name?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(50)
   last_name?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   profile_desc?: string;
 
-  @IsArray()
-  avatar_actions?: Array<UpdateImageDto>;
+  @IsOptional()
+  avatar?: CreateImageDto;
 }

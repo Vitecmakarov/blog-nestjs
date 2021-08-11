@@ -2,8 +2,8 @@ import {
   Entity,
   Column,
   PrimaryColumn,
+  OneToOne,
   ManyToOne,
-  JoinTable,
   BeforeInsert,
 } from 'typeorm';
 
@@ -13,12 +13,12 @@ import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
 import { CommentsEntity } from '../comment/comments.entity';
 
-@Entity('image')
+@Entity('images')
 export class ImagesEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: false, length: 100 })
+  @Column({ nullable: false })
   path: string;
 
   @Column({ nullable: false })
@@ -27,22 +27,22 @@ export class ImagesEntity {
   @Column({ nullable: false })
   extension: string;
 
-  @ManyToOne(() => UsersEntity, (user) => user.avatars, {
+  @OneToOne(() => UsersEntity, (user) => user.avatar, {
+    eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   user: UsersEntity;
 
   @ManyToOne(() => PostsEntity, (post) => post.images, {
     onDelete: 'CASCADE',
+    eager: true,
   })
-  @JoinTable()
   post: PostsEntity;
 
   @ManyToOne(() => CommentsEntity, (comment) => comment.images, {
+    eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
   comment: CommentsEntity;
 
   @Column({
