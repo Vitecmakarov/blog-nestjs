@@ -55,12 +55,15 @@ export class ImagesService {
   }
 
   async getById(id: string): Promise<ImagesEntity> {
-    return await this.imagesRepository.findOne(id);
+    return await this.imagesRepository.findOne(id, {
+      relations: ['user', 'post', 'comment'],
+    });
   }
 
   async getAllByUserId(id: string): Promise<ImagesEntity[]> {
     return await this.imagesRepository.find({
       where: { user: { id: id } },
+      relations: ['user', 'post', 'comment'],
     });
   }
 

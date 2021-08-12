@@ -49,28 +49,36 @@ export class CommentsService {
   }
 
   async getAll(): Promise<CommentsEntity[]> {
-    return await this.postCommentsRepository.find();
+    return await this.postCommentsRepository.find({
+      relations: ['user', 'post', 'images'],
+    });
   }
 
   async getById(id: string): Promise<CommentsEntity> {
-    return await this.postCommentsRepository.findOne(id);
+    return await this.postCommentsRepository.findOne(id, {
+      relations: ['user', 'post', 'images'],
+    });
   }
 
   async getAllByUserId(id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsRepository.find({
       where: { user: { id: id } },
+      relations: ['user', 'post', 'images'],
     });
   }
 
   async getAllByPostId(id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsRepository.find({
       where: { post: { id: id } },
+      relations: ['user', 'post', 'images'],
     });
   }
 
   async update(id: string, data: UpdatePostCommentDto): Promise<void> {
     const { image_actions, ...dataToUpdate } = data;
-    const comment = await this.postCommentsRepository.findOne(id);
+    const comment = await this.postCommentsRepository.findOne(id, {
+      relations: ['images'],
+    });
 
     if (!comment) {
       throw new NotFoundException('Comment with this id is not exist');
@@ -101,7 +109,9 @@ export class CommentsService {
   }
 
   async remove(id: string): Promise<void> {
-    const comment = await this.postCommentsRepository.findOne(id);
+    const comment = await this.postCommentsRepository.findOne(id, {
+      relations: ['images'],
+    });
 
     if (!comment) {
       throw new NotFoundException('Comment with this id is not exist');

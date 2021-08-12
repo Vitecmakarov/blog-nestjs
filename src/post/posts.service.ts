@@ -47,28 +47,36 @@ export class PostsService {
   }
 
   async getAll(): Promise<PostsEntity[]> {
-    return await this.postsRepository.find();
+    return await this.postsRepository.find({
+      relations: ['user', 'categories', 'images', 'comments'],
+    });
   }
 
   async getById(id: string): Promise<PostsEntity> {
-    return await this.postsRepository.findOne(id);
+    return await this.postsRepository.findOne(id, {
+      relations: ['user', 'categories', 'images', 'comments'],
+    });
   }
 
   async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
       where: { categories: { id: categoryId } },
+      relations: ['user', 'categories', 'images', 'comments'],
     });
   }
 
   async getAllByUserId(userId: string): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
       where: { user: { id: userId } },
+      relations: ['user', 'categories', 'images', 'comments'],
     });
   }
 
   async update(id: string, data: UpdatePostDto): Promise<PostsEntity> {
     const { category_actions, image_actions, ...postData } = data;
-    const post = await this.postsRepository.findOne();
+    const post = await this.postsRepository.findOne(id, {
+      relations: ['categories', 'images'],
+    });
 
     await Promise.all(
       category_actions.map(async (action) => {
@@ -114,7 +122,9 @@ export class PostsService {
   }
 
   async remove(id: string): Promise<void> {
-    const post = await this.postsRepository.findOne(id);
+    const post = await this.postsRepository.findOne(id, {
+      relations: ['images'],
+    });
 
     if (!post) {
       throw new NotFoundException('Post with this id is not exist');

@@ -21,13 +21,22 @@ export class UsersService {
   }
 
   async getById(id: string): Promise<UsersEntity> {
-    return await this.usersRepository.findOne(id);
+    return await this.usersRepository.findOne(id, {
+      relations: [
+        'created_posts',
+        'created_categories',
+        'created_comments',
+        'avatar',
+      ],
+    });
   }
 
   async update(id: string, dataDto: UpdateUserDto): Promise<void> {
     const { avatar, ...dataToUpdate } = dataDto;
 
-    const user = await this.usersRepository.findOne(id);
+    const user = await this.usersRepository.findOne(id, {
+      relations: ['avatar'],
+    });
 
     if (user) {
       throw new NotFoundException('User with this id is not exist');
@@ -49,7 +58,9 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
-    const user = await this.usersRepository.findOne(id);
+    const user = await this.usersRepository.findOne(id, {
+      relations: ['avatar'],
+    });
 
     if (user) {
       throw new NotFoundException('User with this id is not exist');
@@ -63,6 +74,13 @@ export class UsersService {
 
   // Only for development!
   async getAll(): Promise<UsersEntity[]> {
-    return await this.usersRepository.find();
+    return await this.usersRepository.find({
+      relations: [
+        'created_posts',
+        'created_categories',
+        'created_comments',
+        'avatar',
+      ],
+    });
   }
 }

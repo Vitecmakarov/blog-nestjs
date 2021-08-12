@@ -21,14 +21,11 @@ export class CategoriesEntity {
   title: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_categories, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   user: UsersEntity;
 
-  @ManyToMany(() => PostsEntity, (posts) => posts.categories, {
-    eager: true,
-  })
+  @ManyToMany(() => PostsEntity, (posts) => posts.categories)
   posts: PostsEntity[];
 
   @BeforeInsert()

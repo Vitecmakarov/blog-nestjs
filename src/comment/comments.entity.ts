@@ -19,20 +19,16 @@ export class CommentsEntity {
   id: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_comments, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   user: UsersEntity;
 
   @ManyToOne(() => PostsEntity, (post) => post.comments, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   post: PostsEntity;
 
-  @OneToMany(() => ImagesEntity, (image) => image.comment, {
-    eager: true,
-  })
+  @OneToMany(() => ImagesEntity, (image) => image.comment)
   images: ImagesEntity[];
 
   @Column({ nullable: false })

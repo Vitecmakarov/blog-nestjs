@@ -29,18 +29,22 @@ export class CategoriesService {
   }
 
   async getById(id: string): Promise<CategoriesEntity> {
-    return await this.categoriesRepository.findOne(id);
+    return await this.categoriesRepository.findOne(id, {
+      relations: ['user', 'posts'],
+    });
   }
 
   async getAllByUserId(id: string): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
       where: { user: { id: id } },
+      relations: ['user', 'posts'],
     });
   }
 
   async getAllByTitle(id: string, title: string): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
       where: [{ user: { id: id } }, { title: title }],
+      relations: ['user', 'posts'],
     });
   }
 
@@ -54,6 +58,8 @@ export class CategoriesService {
 
   // Only for develop
   async getAll(): Promise<CategoriesEntity[]> {
-    return await this.categoriesRepository.find();
+    return await this.categoriesRepository.find({
+      relations: ['user', 'posts'],
+    });
   }
 }

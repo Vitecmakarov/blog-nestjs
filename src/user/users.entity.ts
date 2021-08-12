@@ -36,25 +36,16 @@ export class UsersEntity {
   @Column({ nullable: false })
   password: string;
 
-  @OneToMany(() => PostsEntity, (post) => post.user, {
-    eager: true,
-  })
+  @OneToMany(() => PostsEntity, (post) => post.user)
   created_posts: PostsEntity[];
 
-  @OneToMany(() => CategoriesEntity, (category) => category.user, {
-    eager: true,
-  })
+  @OneToMany(() => CategoriesEntity, (category) => category.user)
   created_categories: CategoriesEntity[];
 
-  @OneToMany(() => CommentsEntity, (comment) => comment.user, {
-    eager: true,
-  })
+  @OneToMany(() => CommentsEntity, (comment) => comment.user)
   created_comments: CommentsEntity[];
 
-  @OneToOne(() => ImagesEntity, (image) => image.user, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => ImagesEntity, (image) => image.user)
   @JoinColumn()
   avatar: ImagesEntity;
 

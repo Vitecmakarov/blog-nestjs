@@ -28,19 +28,16 @@ export class ImagesEntity {
   extension: string;
 
   @OneToOne(() => UsersEntity, (user) => user.avatar, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   user: UsersEntity;
 
   @ManyToOne(() => PostsEntity, (post) => post.images, {
     onDelete: 'CASCADE',
-    eager: true,
   })
   post: PostsEntity;
 
   @ManyToOne(() => CommentsEntity, (comment) => comment.images, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   comment: CommentsEntity;

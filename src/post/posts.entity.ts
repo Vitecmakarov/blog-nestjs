@@ -28,25 +28,18 @@ export class PostsEntity {
   content: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_posts, {
-    eager: true,
     onDelete: 'CASCADE',
   })
   user: UsersEntity;
 
-  @ManyToMany(() => CategoriesEntity, (category) => category.posts, {
-    eager: true,
-  })
+  @ManyToMany(() => CategoriesEntity, (category) => category.posts)
   @JoinTable()
   categories: CategoriesEntity[];
 
-  @OneToMany(() => ImagesEntity, (image) => image.post, {
-    eager: true,
-  })
+  @OneToMany(() => ImagesEntity, (image) => image.post)
   images: ImagesEntity[];
 
-  @OneToMany(() => CommentsEntity, (comment) => comment.post, {
-    eager: true,
-  })
+  @OneToMany(() => CommentsEntity, (comment) => comment.post)
   comments: CommentsEntity[];
 
   @Column({
