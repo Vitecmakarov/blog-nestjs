@@ -5,6 +5,7 @@ import {
   ManyToMany,
   ManyToOne,
   BeforeInsert,
+  JoinColumn,
 } from 'typeorm';
 
 import { v4 } from 'uuid';
@@ -23,6 +24,7 @@ export class CategoriesEntity {
   @ManyToOne(() => UsersEntity, (user) => user.created_categories, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: UsersEntity;
 
   @ManyToMany(() => PostsEntity, (posts) => posts.categories)

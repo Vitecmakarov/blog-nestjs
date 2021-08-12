@@ -38,7 +38,7 @@ export class UsersService {
       relations: ['avatar'],
     });
 
-    if (user) {
+    if (!user) {
       throw new NotFoundException('User with this id is not exist');
     }
 
@@ -62,7 +62,7 @@ export class UsersService {
       relations: ['avatar'],
     });
 
-    if (user) {
+    if (!user) {
       throw new NotFoundException('User with this id is not exist');
     }
 

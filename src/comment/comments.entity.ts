@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   BeforeInsert,
+  JoinColumn,
 } from 'typeorm';
 
 import { v4 } from 'uuid';
@@ -21,11 +22,13 @@ export class CommentsEntity {
   @ManyToOne(() => UsersEntity, (user) => user.created_comments, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: UsersEntity;
 
   @ManyToOne(() => PostsEntity, (post) => post.comments, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
   post: PostsEntity;
 
   @OneToMany(() => ImagesEntity, (image) => image.comment)

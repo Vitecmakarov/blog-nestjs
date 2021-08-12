@@ -46,7 +46,7 @@ export class UsersEntity {
   created_comments: CommentsEntity[];
 
   @OneToOne(() => ImagesEntity, (image) => image.user)
-  @JoinColumn()
+  @JoinColumn({ name: 'avatar_id', referencedColumnName: 'id' })
   avatar: ImagesEntity;
 
   @Column({
