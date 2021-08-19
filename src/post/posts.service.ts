@@ -2,7 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreatePostDto, UpdatePostDto, Action } from './dto/posts.dto';
+import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
+import { CategoryAction } from '../category/dto/categories.dto';
+import { ImageAction } from '../image/dto/images.dto';
 
 import { PostsEntity } from './posts.entity';
 
@@ -20,10 +22,10 @@ export class PostsService {
     private readonly imagesService: ImagesService,
   ) {}
 
-  async create(data: CreatePostDto): Promise<void> {
-    const { category_ids, user_id, images, ...postData } = data;
+  async create(dataDto: CreatePostDto): Promise<void> {
+    const { category_ids, user_id, images, ...post_data } = dataDto;
 
-    const post = this.postsRepository.create(postData);
+    const post = this.postsRepository.create(post_data);
 
     post.user = await this.usersService.getById(user_id);
 
@@ -32,8 +34,8 @@ export class PostsService {
     }
 
     post.categories = await Promise.all(
-      category_ids.map(async (categoryId) => {
-        return await this.categoriesService.getById(categoryId);
+      category_ids.map(async (category_id) => {
+        return await this.categoriesService.getById(category_id);
       }),
     );
 
@@ -73,7 +75,7 @@ export class PostsService {
   }
 
   async update(id: string, data: UpdatePostDto): Promise<PostsEntity> {
-    const { category_actions, image_actions, ...postData } = data;
+    const { category_actions, image_actions, ...post_data } = data;
     const post = await this.postsRepository.findOne(id, {
       relations: ['categories', 'images'],
     });
@@ -81,13 +83,13 @@ export class PostsService {
     await Promise.all(
       category_actions.map(async (action) => {
         switch (action.type) {
-          case Action.ADD:
+          case CategoryAction.ADD:
             const category = await this.categoriesService.getById(
               action.category_id,
             );
             post.categories.push(category);
             break;
-          case Action.DELETE:
+          case CategoryAction.DELETE:
             post.categories = post.categories.filter((category) => {
               return category.id !== action.category_id;
             });
@@ -99,14 +101,14 @@ export class PostsService {
     );
 
     await Promise.all(
-      image_actions.map(async (image_action) => {
-        switch (image_action.type) {
-          case Action.ADD:
-            const image = await this.imagesService.create(image_action.data);
+      image_actions.map(async (action) => {
+        switch (action.type) {
+          case ImageAction.ADD:
+            const image = await this.imagesService.create(action.data);
             post.images.push(image);
             break;
-          case Action.DELETE:
-            const id = image_action.id;
+          case ImageAction.DELETE:
+            const id = action.id;
             post.images = post.images.filter((image) => {
               return image.id !== id;
             });
@@ -118,7 +120,7 @@ export class PostsService {
       }),
     );
 
-    return await this.postsRepository.save({ ...post, ...postData });
+    return await this.postsRepository.save({ ...post, ...post_data });
   }
 
   async remove(id: string): Promise<void> {

@@ -1,14 +1,13 @@
 import {
   Entity,
   Column,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   BeforeInsert,
   OneToMany,
   OneToOne,
-  JoinColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
-import { v4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 
 import { PostsEntity } from '../post/posts.entity';
@@ -18,7 +17,7 @@ import { ImagesEntity } from '../image/images.entity';
 
 @Entity('users')
 export class UsersEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: false, length: 50 })
@@ -33,6 +32,7 @@ export class UsersEntity {
   @Column({ nullable: false, length: 100 })
   email: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column({ nullable: false })
   password: string;
 
@@ -46,7 +46,6 @@ export class UsersEntity {
   created_comments: CommentsEntity[];
 
   @OneToOne(() => ImagesEntity, (image) => image.user)
-  @JoinColumn({ name: 'avatar_id', referencedColumnName: 'id' })
   avatar: ImagesEntity;
 
   @Column({
@@ -66,12 +65,21 @@ export class UsersEntity {
   is_banned: boolean;
 
   @BeforeInsert()
-  async generateId() {
-    this.id = v4();
-  }
-
-  @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  constructor(
+    first_name: string,
+    last_name: string,
+    mobile: string,
+    email: string,
+    password: string,
+  ) {
+    this.first_name = first_name;
+    this.last_name = last_name;
+    this.mobile = mobile;
+    this.email = email;
+    this.password = password;
   }
 }

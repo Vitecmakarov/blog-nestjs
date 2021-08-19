@@ -1,14 +1,11 @@
 import {
   Entity,
   Column,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   OneToOne,
   ManyToOne,
-  BeforeInsert,
   JoinColumn,
 } from 'typeorm';
-
-import { v4 } from 'uuid';
 
 import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
@@ -16,7 +13,7 @@ import { CommentsEntity } from '../comment/comments.entity';
 
 @Entity('images')
 export class ImagesEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: false })
@@ -31,6 +28,7 @@ export class ImagesEntity {
   @OneToOne(() => UsersEntity, (user) => user.avatar, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: UsersEntity;
 
   @ManyToOne(() => PostsEntity, (post) => post.images, {
@@ -51,9 +49,4 @@ export class ImagesEntity {
     type: 'timestamp',
   })
   upload_timestamp: string;
-
-  @BeforeInsert()
-  async generateId() {
-    this.id = v4();
-  }
 }

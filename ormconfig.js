@@ -1,21 +1,23 @@
-const logging = process.env.DB_LOGGING === 'true';
-const synchronize = process.env.DB_SYNCHRONIZE === 'true';
-const migrationsRun = process.env.DB_MIGRATIONS_RUN === 'true';
+require('dotenv').config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
-module.exports = {
-  "type": process.env.DB_TYPE || "mysql",
-  "host": process.env.DB_HOST || "localhost",
-  "port": Number(process.env.DB_PORT) || 3306,
-  "username": process.env.DB_USER || "root",
-  "password": process.env.DB_PASSWORD || "root",
-  "database": process.env.DB_NAME || "nestjs_blog",
-  "charset": process.env.DB_CHARSET || "utf8",
-  "logging": logging || true,
-  "entities": [process.env.DB_ENTITIES] || ["dist/**/*.entity{.ts,.js}"],
-  "migrations": [process.env.DB_MIGRATIONS] || ["dist/migrations/*{.ts,.js}"],
+const LOGGING = process.env.DB_LOGGING === 'true';
+const SYNCHRONIZE = process.env.DB_SYNCHRONIZE === 'true';
+const MIGRATIONS_RUN = process.env.DB_MIGRATIONS_RUN === 'true';
+
+module.exports = Object.freeze({
+  "type": process.env.DB_TYPE,
+  "host": process.env.DB_HOST,
+  "port": Number(process.env.DB_PORT),
+  "username": process.env.DB_USER,
+  "password": process.env.DB_PASSWORD,
+  "database": process.env.DB_NAME,
+  "charset": process.env.DB_CHARSET,
+  "logging": LOGGING,
+  "entities": [process.env.DB_ENTITIES],
+  "migrations": [process.env.DB_MIGRATIONS],
   "cli": {
-    "migrationsDir": process.env.DB_MIGRATIONS_DIR || "migrations"
+    "migrationsDir": process.env.DB_MIGRATIONS_DIR
   },
-  "migrationsRun": synchronize || false,
-  "synchronize": migrationsRun || true,
-};
+  "migrationsRun": SYNCHRONIZE,
+  "synchronize": MIGRATIONS_RUN,
+});

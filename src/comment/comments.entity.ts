@@ -1,14 +1,11 @@
 import {
   Entity,
   Column,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
-  BeforeInsert,
   JoinColumn,
 } from 'typeorm';
-
-import { v4 } from 'uuid';
 
 import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
@@ -16,7 +13,7 @@ import { ImagesEntity } from '../image/images.entity';
 
 @Entity('comments')
 export class CommentsEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_comments, {
@@ -49,9 +46,4 @@ export class CommentsEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   publish_timestamp: string;
-
-  @BeforeInsert()
-  async generateId() {
-    this.id = v4();
-  }
 }

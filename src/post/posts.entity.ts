@@ -1,16 +1,13 @@
 import {
   Entity,
   Column,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   ManyToMany,
   ManyToOne,
   OneToMany,
-  BeforeInsert,
-  JoinTable,
   JoinColumn,
+  JoinTable,
 } from 'typeorm';
-
-import { v4 } from 'uuid';
 
 import { CategoriesEntity } from '../category/categories.entity';
 import { CommentsEntity } from '../comment/comments.entity';
@@ -19,7 +16,7 @@ import { UsersEntity } from '../user/users.entity';
 
 @Entity('posts')
 export class PostsEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: false, length: 100 })
@@ -35,7 +32,17 @@ export class PostsEntity {
   user: UsersEntity;
 
   @ManyToMany(() => CategoriesEntity, (category) => category.posts)
-  @JoinTable()
+  @JoinTable({
+    name: 'posts_categories',
+    joinColumn: {
+      name: 'post',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'category',
+      referencedColumnName: 'id',
+    },
+  })
   categories: CategoriesEntity[];
 
   @OneToMany(() => ImagesEntity, (image) => image.post)
@@ -56,9 +63,4 @@ export class PostsEntity {
 
   @Column({ nullable: true, type: 'timestamp' })
   published_at: string;
-
-  @BeforeInsert()
-  async generateId() {
-    this.id = v4();
-  }
 }

@@ -2,9 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
+import { hash } from 'bcrypt';
 
+import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import { UsersEntity } from './users.entity';
+
 import { ImagesService } from '../image/images.service';
 
 @Injectable()
@@ -42,15 +44,18 @@ export class UsersService {
       throw new NotFoundException('User with this id is not exist');
     }
 
-    if (user.avatar) {
-      await this.imageService.remove(user.avatar.id);
+    if (avatar) {
+      if (user.avatar) {
+        await this.imageService.remove(user.avatar.id);
+      }
+      user.avatar = await this.imageService.create(avatar);
     }
-    user.avatar = await this.imageService.create(avatar);
     await this.usersRepository.save({ ...user, ...dataToUpdate });
   }
 
   async updatePassword(id: string, password: string): Promise<void> {
-    await this.usersRepository.update({ id }, { password: password });
+    const hashedPassword = await hash(password, 10);
+    await this.usersRepository.update({ id }, { password: hashedPassword });
   }
 
   async updateLastLogin(id: string, loginDate: string): Promise<void> {
@@ -59,20 +64,47 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.usersRepository.findOne(id, {
-      relations: ['avatar'],
+      relations: ['avatar', 'created_posts', 'created_comments'],
     });
 
     if (!user) {
       throw new NotFoundException('User with this id is not exist');
     }
 
+    if (user.created_posts.length !== 0) {
+      await Promise.all(
+        user.created_posts.map(async (post) => {
+          if (post.images) {
+            post.images.map(async (image) => {
+              await this.imageService.remove(image.id);
+            });
+          }
+          return;
+        }),
+      );
+    }
+
+    if (user.created_comments.length !== 0) {
+      await Promise.all(
+        user.created_comments.map(async (comment) => {
+          if (comment.images) {
+            comment.images.map(async (image) => {
+              await this.imageService.remove(image.id);
+            });
+          }
+          return;
+        }),
+      );
+    }
+
     if (user.avatar) {
       await this.imageService.remove(user.avatar.id);
     }
+
     await this.usersRepository.delete(id);
   }
 
-  // Only for development!
+  // Only for tests!
   async getAll(): Promise<UsersEntity[]> {
     return await this.usersRepository.find({
       relations: [

@@ -2,11 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import {
-  CreatePostCommentDto,
-  UpdatePostCommentDto,
-  Action,
-} from './dto/comments.dto';
+import { ImageAction } from '../image/dto/images.dto';
+import { CreatePostCommentDto, UpdatePostCommentDto } from './dto/comments.dto';
 
 import { CommentsEntity } from './comments.entity';
 
@@ -24,10 +21,10 @@ export class CommentsService {
     private readonly imagesService: ImagesService,
   ) {}
 
-  async create(data: CreatePostCommentDto): Promise<void> {
-    const { post_id, user_id, images, ...postCommentData } = data;
+  async create(dataDto: CreatePostCommentDto): Promise<void> {
+    const { post_id, user_id, images, ...post_comment_data } = dataDto;
 
-    const postComment = this.postCommentsRepository.create(postCommentData);
+    const postComment = this.postCommentsRepository.create(post_comment_data);
 
     postComment.user = await this.usersService.getById(user_id);
     if (!postComment.user) {
@@ -74,8 +71,8 @@ export class CommentsService {
     });
   }
 
-  async update(id: string, data: UpdatePostCommentDto): Promise<void> {
-    const { image_actions, ...dataToUpdate } = data;
+  async update(id: string, dataDto: UpdatePostCommentDto): Promise<void> {
+    const { image_actions, ...data_to_update } = dataDto;
     const comment = await this.postCommentsRepository.findOne(id, {
       relations: ['images'],
     });
@@ -88,11 +85,11 @@ export class CommentsService {
       await Promise.all(
         image_actions.map(async (image_action) => {
           switch (image_action.type) {
-            case Action.ADD:
+            case ImageAction.ADD:
               const image = await this.imagesService.create(image_action.data);
               comment.images.push(image);
               break;
-            case Action.DELETE:
+            case ImageAction.DELETE:
               const id = image_action.id;
               comment.images = comment.images.filter((image) => {
                 return image.id !== id;
@@ -105,7 +102,7 @@ export class CommentsService {
         }),
       );
     }
-    await this.postCommentsRepository.save({ ...comment, ...dataToUpdate });
+    await this.postCommentsRepository.save({ ...comment, ...data_to_update });
   }
 
   async remove(id: string): Promise<void> {

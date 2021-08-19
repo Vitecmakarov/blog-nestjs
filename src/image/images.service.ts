@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
 import { createHash } from 'crypto';
 import { promisify } from 'util';
@@ -63,7 +63,21 @@ export class ImagesService {
   async getAllByUserId(id: string): Promise<ImagesEntity[]> {
     return await this.imagesRepository.find({
       where: { user: { id: id } },
-      relations: ['user', 'post', 'comment'],
+      relations: ['user'],
+    });
+  }
+
+  async getAllByPostId(id: string): Promise<ImagesEntity[]> {
+    return await this.imagesRepository.find({
+      where: { post: { id: id } },
+      relations: ['post'],
+    });
+  }
+
+  async getAllByCommentId(id: string): Promise<ImagesEntity[]> {
+    return await this.imagesRepository.find({
+      where: { comment: { id: id } },
+      relations: ['comment'],
     });
   }
 

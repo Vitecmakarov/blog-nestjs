@@ -1,21 +1,18 @@
 import {
   Entity,
   Column,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   ManyToMany,
   ManyToOne,
-  BeforeInsert,
   JoinColumn,
 } from 'typeorm';
-
-import { v4 } from 'uuid';
 
 import { PostsEntity } from '../post/posts.entity';
 import { UsersEntity } from '../user/users.entity';
 
 @Entity('categories')
 export class CategoriesEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: false, length: 100 })
@@ -29,9 +26,4 @@ export class CategoriesEntity {
 
   @ManyToMany(() => PostsEntity, (posts) => posts.categories)
   posts: PostsEntity[];
-
-  @BeforeInsert()
-  async generateId() {
-    this.id = v4();
-  }
 }

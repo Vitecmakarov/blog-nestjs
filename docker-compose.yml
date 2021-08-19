@@ -5,8 +5,21 @@ services:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: nestjs_blog
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'nestjs_blog'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'us777199'
     command: mysqld --character-set-server=utf8
+    ports:
+      - '3307:3306'
+  mysql_test:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'nestjs_blog_test'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'us777199'
+    command: mysqld --character-set-server=utf8
+    ports:
+      - '3308:3306'

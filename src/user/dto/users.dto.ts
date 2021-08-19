@@ -49,3 +49,8 @@ export class UpdateUserDto {
   @IsOptional()
   avatar?: CreateImageDto;
 }
+
+export class UpdateUserPasswordDto {
+  @IsString()
+  password: string;
+}

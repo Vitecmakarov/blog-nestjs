@@ -1,6 +1,16 @@
-import { IsString, IsUUID, IsArray, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsArray,
+  IsOptional,
+  ArrayMinSize,
+} from 'class-validator';
 
-import { CreateImageDto } from '../../image/dto/images.dto';
+import {
+  CreateImageDto,
+  AddImageAction,
+  DeleteImageAction,
+} from '../../image/dto/images.dto';
 
 export class CreatePostCommentDto {
   @IsString()
@@ -25,20 +35,6 @@ export class UpdatePostCommentDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMinSize(1)
   image_actions?: Array<AddImageAction | DeleteImageAction>;
-}
-
-interface AddImageAction {
-  type: Action.ADD;
-  data: CreateImageDto;
-}
-
-interface DeleteImageAction {
-  type: Action.DELETE;
-  id: string;
-}
-
-export enum Action {
-  ADD,
-  DELETE,
 }

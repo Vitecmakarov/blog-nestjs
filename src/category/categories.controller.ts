@@ -34,11 +34,11 @@ export class CategoriesController {
   }
 
   @Get('title/:user&:title')
-  async getCategoriesByTitle(
+  async getCategoriesUserIdAndTitle(
     @Param('user') user: string,
     @Param('title') title: string,
   ): Promise<CategoriesEntity[]> {
-    return await this.categoriesService.getAllByTitle(user, title);
+    return await this.categoriesService.getAllByUserIdAndTitle(user, title);
   }
 
   @Post('create')

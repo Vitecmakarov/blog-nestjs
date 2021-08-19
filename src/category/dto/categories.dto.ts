@@ -3,7 +3,7 @@ import { IsString, MaxLength, IsUUID } from 'class-validator';
 export class CreateCategoriesDto {
   @IsString()
   @IsUUID(4)
-  userId: string;
+  user_id: string;
 
   @IsString()
   @MaxLength(100)
@@ -14,4 +14,17 @@ export class UpdateCategoriesDto {
   @IsString()
   @MaxLength(100)
   title: string;
+}
+
+export class UpdateCategoryAction {
+  type: CategoryAction;
+
+  @IsString()
+  @IsUUID(4)
+  category_id: string;
+}
+
+export enum CategoryAction {
+  ADD,
+  DELETE,
 }

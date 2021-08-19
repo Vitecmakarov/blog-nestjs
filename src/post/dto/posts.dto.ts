@@ -7,7 +7,12 @@ import {
   IsOptional,
 } from 'class-validator';
 
-import { CreateImageDto } from '../../image/dto/images.dto';
+import {
+  CreateImageDto,
+  AddImageAction,
+  DeleteImageAction,
+} from '../../image/dto/images.dto';
+import { UpdateCategoryAction } from '../../category/dto/categories.dto';
 
 export class CreatePostDto {
   @IsString()
@@ -27,12 +32,14 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMinSize(1)
   images?: Array<CreateImageDto>;
 }
 
 export class UpdatePostDto {
   @IsOptional()
   @IsArray()
+  @ArrayMinSize(1)
   category_actions?: Array<UpdateCategoryAction>;
 
   @IsOptional()
@@ -46,25 +53,6 @@ export class UpdatePostDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMinSize(1)
   image_actions?: Array<AddImageAction | DeleteImageAction>;
-}
-
-interface UpdateCategoryAction {
-  type: Action;
-  category_id: string;
-}
-
-interface AddImageAction {
-  type: Action.ADD;
-  data: CreateImageDto;
-}
-
-interface DeleteImageAction {
-  type: Action.DELETE;
-  id: string;
-}
-
-export enum Action {
-  ADD,
-  DELETE,
 }
