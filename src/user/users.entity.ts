@@ -20,20 +20,20 @@ export class UsersEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false, length: 50 })
+  @Column({ type: 'varchar', nullable: false, length: 50 })
   first_name: string;
 
-  @Column({ nullable: false, length: 50 })
+  @Column({ type: 'varchar', nullable: false, length: 50 })
   last_name: string;
 
-  @Column({ nullable: false, length: 15 })
+  @Column({ type: 'varchar', nullable: false, length: 15 })
   mobile: string;
 
-  @Column({ nullable: false, length: 100 })
+  @Column({ type: 'varchar', nullable: false, length: 100 })
   email: string;
 
   @Exclude({ toPlainOnly: true })
-  @Column({ nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   password: string;
 
   @OneToMany(() => PostsEntity, (post) => post.user)
@@ -49,19 +49,19 @@ export class UsersEntity {
   avatar: ImagesEntity;
 
   @Column({
+    type: 'timestamp',
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
-    type: 'timestamp',
   })
   register_at: string;
 
-  @Column({ nullable: true, type: 'timestamp' }) //TODO
+  @Column({ type: 'timestamp', nullable: true }) //TODO
   last_login: string;
 
-  @Column({ nullable: true, length: 100 })
+  @Column({ type: 'varchar', nullable: true, length: 100 })
   profile_desc: string;
 
-  @Column({ nullable: false, default: false }) //TODO
+  @Column({ type: 'boolean', nullable: false, default: false }) //TODO
   is_banned: boolean;
 
   @BeforeInsert()

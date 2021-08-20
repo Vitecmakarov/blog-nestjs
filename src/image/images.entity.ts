@@ -16,13 +16,13 @@ export class ImagesEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   path: string;
 
-  @Column({ nullable: false })
+  @Column({ type: 'int', nullable: false })
   size: number;
 
-  @Column({ nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   extension: string;
 
   @OneToOne(() => UsersEntity, (user) => user.avatar, {
@@ -44,9 +44,9 @@ export class ImagesEntity {
   comment: CommentsEntity;
 
   @Column({
+    type: 'timestamp',
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
-    type: 'timestamp',
   })
   upload_timestamp: string;
 }

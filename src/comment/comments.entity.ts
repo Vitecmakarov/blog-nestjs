@@ -31,13 +31,13 @@ export class CommentsEntity {
   @OneToMany(() => ImagesEntity, (image) => image.comment)
   images: ImagesEntity[];
 
-  @Column({ nullable: false })
+  @Column({ type: 'text', nullable: false })
   content: string;
 
   @Column({
+    type: 'timestamp',
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
-    type: 'timestamp',
   })
   create_timestamp: string;
 

@@ -15,7 +15,7 @@ export class CategoriesEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false, length: 100 })
+  @Column({ type: 'varchar', nullable: false, length: 100 })
   title: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_categories, {

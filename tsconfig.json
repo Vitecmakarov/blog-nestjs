@@ -12,10 +12,10 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
   ]
 }

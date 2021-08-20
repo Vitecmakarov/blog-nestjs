@@ -8,7 +8,15 @@ dotenv.config({ path: `./env/.env.${process.env.NODE_ENV}` });
 import { createHash } from 'crypto';
 import { promisify } from 'util';
 import { extension as mimeToExtension } from 'mime-types';
-import { writeFile, existsSync, mkdirSync, access, mkdir, unlink } from 'fs';
+import {
+  writeFile,
+  existsSync,
+  mkdirSync,
+  access,
+  mkdir,
+  unlink,
+  createReadStream,
+} from 'fs';
 
 import { CreateImageDto } from './dto/images.dto';
 import { ImagesEntity } from './images.entity';
@@ -52,6 +60,31 @@ export class ImagesService {
     const imageEntity = this.imagesRepository.create(imageData);
     await this.imagesRepository.save(imageEntity);
     return imageEntity;
+  }
+
+  async getFileData(id: string): Promise<Buffer> {
+    let data;
+    const checkIfFileExist = promisify(access);
+
+    const image = await this.imagesRepository.findOne(id);
+
+    try {
+      await checkIfFileExist(image.path);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        throw new NotFoundException('File not found');
+      }
+    }
+
+    return new Promise((resolve) => {
+      const stream = createReadStream(image.path, { encoding: 'utf8' });
+      stream.on('data', function (chunk) {
+        data += chunk;
+      });
+      stream.on('close', () => {
+        resolve(data);
+      });
+    });
   }
 
   async getById(id: string): Promise<ImagesEntity> {

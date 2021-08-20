@@ -19,10 +19,10 @@ export class PostsEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false, length: 100 })
+  @Column({ type: 'varchar', nullable: false, length: 100 })
   title: string;
 
-  @Column({ nullable: false })
+  @Column({ type: 'text', nullable: false })
   content: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.created_posts, {
@@ -52,15 +52,15 @@ export class PostsEntity {
   comments: CommentsEntity[];
 
   @Column({
+    type: 'timestamp',
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
-    type: 'timestamp',
   })
   created_at: string;
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   updated_at: string;
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   published_at: string;
 }

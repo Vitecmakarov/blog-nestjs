@@ -14,8 +14,8 @@ lerna-debug.log*
 .DS_Store
 
 # Tests
-/coverage
-/.nyc_output
+/test/coverage
+/test/.nyc_output
 
 # IDEs and editors
 /.idea
@@ -36,5 +36,6 @@ lerna-debug.log*
 # Lock-files
 package-lock.json
 
-# Images dir
+# Images dirs
 /images
+/test_images
