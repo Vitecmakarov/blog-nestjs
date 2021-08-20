@@ -18,13 +18,11 @@ export class CategoriesService {
     const { user_id, ...category_data } = dataDto;
 
     const category = this.categoriesRepository.create(category_data);
-
     category.user = await this.usersService.getById(user_id);
 
     if (!category.user) {
       throw new NotFoundException('User with this id is not exist');
     }
-
     await this.categoriesRepository.save(category);
   }
 
@@ -59,7 +57,7 @@ export class CategoriesService {
     await this.categoriesRepository.delete(id);
   }
 
-  // Only for develop
+  // Only for tests
   async getAll(): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
       relations: ['user', 'posts'],

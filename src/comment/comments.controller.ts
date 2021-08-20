@@ -40,11 +40,6 @@ export class CommentsController {
     return await this.postCommentsService.getAllByPostId(id);
   }
 
-  @Get('all')
-  async getAllComments(): Promise<CommentsEntity[]> {
-    return await this.postCommentsService.getAll();
-  }
-
   @Post('create')
   async createComment(@Body() data: CreatePostCommentDto): Promise<void> {
     await this.postCommentsService.create(data);

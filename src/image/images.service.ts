@@ -8,15 +8,7 @@ dotenv.config({ path: `./env/.env.${process.env.NODE_ENV}` });
 import { createHash } from 'crypto';
 import { promisify } from 'util';
 import { extension as mimeToExtension } from 'mime-types';
-import {
-  writeFile,
-  existsSync,
-  mkdirSync,
-  access,
-  mkdir,
-  unlink,
-  createReadStream,
-} from 'fs';
+import { writeFile, existsSync, mkdirSync, access, mkdir, unlink } from 'fs';
 
 import { CreateImageDto } from './dto/images.dto';
 import { ImagesEntity } from './images.entity';
@@ -62,56 +54,28 @@ export class ImagesService {
     return imageEntity;
   }
 
-  async getFileData(id: string): Promise<Buffer> {
-    let data;
-    const checkIfFileExist = promisify(access);
-
-    const image = await this.imagesRepository.findOne(id);
-
-    try {
-      await checkIfFileExist(image.path);
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        throw new NotFoundException('File not found');
-      }
-    }
-
-    return new Promise((resolve) => {
-      const stream = createReadStream(image.path, { encoding: 'utf8' });
-      stream.on('data', function (chunk) {
-        data += chunk;
-      });
-      stream.on('close', () => {
-        resolve(data);
-      });
-    });
-  }
-
   async getById(id: string): Promise<ImagesEntity> {
     return await this.imagesRepository.findOne(id, {
-      relations: ['user', 'post', 'comment'],
+      relations: ['user', 'post'],
     });
   }
 
-  async getAllByUserId(id: string): Promise<ImagesEntity[]> {
-    return await this.imagesRepository.find({
-      where: { user: { id: id } },
-      relations: ['user'],
-    });
+  async getByUserId(id: string): Promise<ImagesEntity> {
+    return await this.imagesRepository.findOne(
+      { user: { id: id } },
+      {
+        relations: ['user'],
+      },
+    );
   }
 
-  async getAllByPostId(id: string): Promise<ImagesEntity[]> {
-    return await this.imagesRepository.find({
-      where: { post: { id: id } },
-      relations: ['post'],
-    });
-  }
-
-  async getAllByCommentId(id: string): Promise<ImagesEntity[]> {
-    return await this.imagesRepository.find({
-      where: { comment: { id: id } },
-      relations: ['comment'],
-    });
+  async getByPostId(id: string): Promise<ImagesEntity> {
+    return await this.imagesRepository.findOne(
+      { post: { id: id } },
+      {
+        relations: ['post'],
+      },
+    );
   }
 
   async remove(id: string): Promise<void> {
@@ -157,7 +121,7 @@ export class ImagesService {
     return createHash('sha256').update(`${name}:${Date.now()}`).digest('hex');
   }
 
-  // Only for develop
+  // Only for tests
   async getAll(): Promise<ImagesEntity[]> {
     return await this.imagesRepository.find();
   }

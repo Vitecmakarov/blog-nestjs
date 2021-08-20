@@ -1,6 +1,6 @@
 require('dotenv').config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
-module.exports = Object.freeze({
+module.exports = {
   "type": process.env.DB_TYPE,
   "host": process.env.DB_HOST,
   "port": Number(process.env.DB_PORT),
@@ -16,4 +16,4 @@ module.exports = Object.freeze({
   },
   "migrationsRun": process.env.DB_SYNCHRONIZE === 'true',
   "synchronize": process.env.DB_MIGRATIONS_RUN === 'true',
-});
+};

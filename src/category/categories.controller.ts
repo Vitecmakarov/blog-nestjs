@@ -66,10 +66,4 @@ export class CategoriesController {
     }
     await this.categoriesService.remove(id);
   }
-
-  // Only for develop
-  @Get('all')
-  async getAllCategories(): Promise<CategoriesEntity[]> {
-    return await this.categoriesService.getAll();
-  }
 }

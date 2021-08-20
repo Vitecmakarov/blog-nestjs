@@ -26,4 +26,8 @@ export class CategoriesEntity {
 
   @ManyToMany(() => PostsEntity, (posts) => posts.categories)
   posts: PostsEntity[];
+
+  constructor(title: string) {
+    this.title = title;
+  }
 }
