@@ -5,6 +5,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   JoinColumn,
   JoinTable,
 } from 'typeorm';
@@ -45,8 +46,8 @@ export class PostsEntity {
   })
   categories: CategoriesEntity[];
 
-  @OneToMany(() => ImagesEntity, (image) => image.post)
-  images: ImagesEntity[];
+  @OneToOne(() => ImagesEntity, (image) => image.post)
+  image: ImagesEntity;
 
   @OneToMany(() => CommentsEntity, (comment) => comment.post)
   comments: CommentsEntity[];
@@ -61,6 +62,8 @@ export class PostsEntity {
   @Column({ type: 'timestamp', nullable: true })
   updated_at: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  published_at: string;
+  constructor(title: string, content: string) {
+    this.title = title;
+    this.content = content;
+  }
 }

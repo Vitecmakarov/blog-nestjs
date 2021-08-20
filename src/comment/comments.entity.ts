@@ -3,13 +3,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
 } from 'typeorm';
 
 import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
-import { ImagesEntity } from '../image/images.entity';
 
 @Entity('comments')
 export class CommentsEntity {
@@ -28,9 +26,6 @@ export class CommentsEntity {
   @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
   post: PostsEntity;
 
-  @OneToMany(() => ImagesEntity, (image) => image.comment)
-  images: ImagesEntity[];
-
   @Column({ type: 'text', nullable: false })
   content: string;
 
@@ -39,11 +34,12 @@ export class CommentsEntity {
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
   })
-  create_timestamp: string;
+  created_at: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  update_timestamp: string;
+  @Column({ type: 'timestamp', nullable: true }) // TODO
+  updated_at: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  publish_timestamp: string;
+  constructor(content: string) {
+    this.content = content;
+  }
 }

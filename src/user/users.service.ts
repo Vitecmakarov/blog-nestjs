@@ -74,23 +74,8 @@ export class UsersService {
     if (user.created_posts.length !== 0) {
       await Promise.all(
         user.created_posts.map(async (post) => {
-          if (post.images) {
-            post.images.map(async (image) => {
-              await this.imageService.remove(image.id);
-            });
-          }
-          return;
-        }),
-      );
-    }
-
-    if (user.created_comments.length !== 0) {
-      await Promise.all(
-        user.created_comments.map(async (comment) => {
-          if (comment.images) {
-            comment.images.map(async (image) => {
-              await this.imageService.remove(image.id);
-            });
+          if (post.image) {
+            await this.imageService.remove(post.image.id);
           }
           return;
         }),
@@ -104,7 +89,7 @@ export class UsersService {
     await this.usersRepository.delete(id);
   }
 
-  // Only for tests!
+  // Only for tests
   async getAll(): Promise<UsersEntity[]> {
     return await this.usersRepository.find({
       relations: [

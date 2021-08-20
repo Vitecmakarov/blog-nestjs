@@ -2,37 +2,44 @@ import {
   Controller,
   Get,
   Param,
-  InternalServerErrorException,
+  NotFoundException,
+  StreamableFile,
 } from '@nestjs/common';
 
 import { ImagesService } from './images.service';
-import { ImagesEntity } from './images.entity';
+import { createReadStream } from 'fs';
 
 @Controller('images')
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
-  @Get('image/data/:id')
-  async getCategoryById(@Param('id') id: string): Promise<Buffer> {
-    const image_data = await this.imagesService.getFileData(id);
-    if (!image_data) {
-      throw new InternalServerErrorException('Error while reading file');
+  @Get('image/:id')
+  async getById(@Param('id') id: string): Promise<StreamableFile> {
+    const image = await this.imagesService.getById(id);
+    if (!image) {
+      throw new NotFoundException('Image is not exist');
     }
-    return image_data;
+    const file = createReadStream(image.path);
+    return new StreamableFile(file);
   }
 
   @Get('user/:id')
-  async getAllUserImages(@Param('id') id: string): Promise<ImagesEntity[]> {
-    return await this.imagesService.getAllByUserId(id);
+  async getByUserId(@Param('id') id: string): Promise<StreamableFile> {
+    const image = await this.imagesService.getByUserId(id);
+    if (!image) {
+      throw new NotFoundException('Image is not exist');
+    }
+    const file = createReadStream(image.path);
+    return new StreamableFile(file);
   }
 
   @Get('post/:id')
-  async getAllPostImages(@Param('id') id: string): Promise<ImagesEntity[]> {
-    return await this.imagesService.getAllByPostId(id);
-  }
-
-  @Get('comment/:id')
-  async getAllCommentImages(@Param('id') id: string): Promise<ImagesEntity[]> {
-    return await this.imagesService.getAllByCommentId(id);
+  async getPostImage(@Param('id') id: string): Promise<StreamableFile> {
+    const image = await this.imagesService.getByPostId(id);
+    if (!image) {
+      throw new NotFoundException('Image is not exist');
+    }
+    const file = createReadStream(image.path);
+    return new StreamableFile(file);
   }
 }

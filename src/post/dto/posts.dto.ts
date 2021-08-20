@@ -7,11 +7,7 @@ import {
   IsOptional,
 } from 'class-validator';
 
-import {
-  CreateImageDto,
-  AddImageAction,
-  DeleteImageAction,
-} from '../../image/dto/images.dto';
+import { CreateImageDto } from '../../image/dto/images.dto';
 import { UpdateCategoryAction } from '../../category/dto/categories.dto';
 
 export class CreatePostDto {
@@ -31,9 +27,7 @@ export class CreatePostDto {
   content: string;
 
   @IsOptional()
-  @IsArray()
-  @ArrayMinSize(1)
-  images?: Array<CreateImageDto>;
+  image?: CreateImageDto;
 }
 
 export class UpdatePostDto {
@@ -52,7 +46,5 @@ export class UpdatePostDto {
   content?: string;
 
   @IsOptional()
-  @IsArray()
-  @ArrayMinSize(1)
-  image_actions?: Array<AddImageAction | DeleteImageAction>;
+  image?: CreateImageDto;
 }
