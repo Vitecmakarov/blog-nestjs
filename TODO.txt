@@ -1,0 +1,5 @@
+1) Solve the problem of the password appearing when requested from other services with a nested user field.
+2) Add authorization and authentication
+3) Add likes and dislikes comments and posts
+4) Add logic to ban user
+5) Add nested comments

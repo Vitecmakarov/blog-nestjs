@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import * as dotenv from 'dotenv';
-dotenv.config({ path: `./env/.env.${process.env.NODE_ENV}` });
+import { config } from 'dotenv';
+config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
 import { createHash } from 'crypto';
 import { promisify } from 'util';

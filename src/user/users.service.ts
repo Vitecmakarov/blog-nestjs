@@ -67,10 +67,6 @@ export class UsersService {
       relations: ['avatar', 'created_posts', 'created_comments'],
     });
 
-    if (!user) {
-      throw new NotFoundException('User with this id is not exist');
-    }
-
     if (user.created_posts.length !== 0) {
       await Promise.all(
         user.created_posts.map(async (post) => {

@@ -112,9 +112,6 @@ export class PostsService {
     const post = await this.postsRepository.findOne(id, {
       relations: ['image'],
     });
-    if (!post) {
-      throw new NotFoundException('Post with this id is not exist');
-    }
 
     if (post.image) {
       await this.imagesService.remove(post.image.id);
