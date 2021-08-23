@@ -7,8 +7,7 @@ import {
   OneToOne,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-
-import * as bcrypt from 'bcrypt';
+import { hash } from 'bcrypt';
 
 import { PostsEntity } from '../post/posts.entity';
 import { CategoriesEntity } from '../category/categories.entity';
@@ -66,7 +65,7 @@ export class UsersEntity {
 
   @BeforeInsert()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await hash(this.password, 10);
   }
 
   constructor(

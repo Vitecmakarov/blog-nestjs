@@ -24,7 +24,9 @@ export class CategoriesEntity {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: UsersEntity;
 
-  @ManyToMany(() => PostsEntity, (posts) => posts.categories)
+  @ManyToMany(() => PostsEntity, (posts) => posts.categories, {
+    onDelete: 'CASCADE',
+  })
   posts: PostsEntity[];
 
   constructor(title: string) {
