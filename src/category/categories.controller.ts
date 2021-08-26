@@ -17,6 +17,11 @@ import { CategoriesService } from './categories.service';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @Post('create')
+  async createCategory(@Body() data: CreateCategoriesDto): Promise<void> {
+    await this.categoriesService.create(data);
+  }
+
   @Get('category/:id')
   async getCategoryById(@Param('id') id: string): Promise<CategoriesEntity> {
     const category = await this.categoriesService.getById(id);
@@ -33,17 +38,11 @@ export class CategoriesController {
     return await this.categoriesService.getAllByUserId(id);
   }
 
-  @Get('title/:user&:title')
+  @Get('title/:title')
   async getCategoriesUserIdAndTitle(
-    @Param('user') user: string,
     @Param('title') title: string,
   ): Promise<CategoriesEntity[]> {
-    return await this.categoriesService.getAllByUserIdAndTitle(user, title);
-  }
-
-  @Post('create')
-  async createCategory(@Body() data: CreateCategoriesDto): Promise<void> {
-    await this.categoriesService.create(data);
+    return await this.categoriesService.getAllByTitle(title);
   }
 
   @Patch('category/:id')

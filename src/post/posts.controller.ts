@@ -17,6 +17,16 @@ import { PostsService } from './posts.service';
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
+  @Post('create')
+  async createPost(@Body() data: CreatePostDto): Promise<void> {
+    await this.postsService.create(data);
+  }
+
+  @Get('all')
+  async getAllPosts(): Promise<PostsEntity[]> {
+    return await this.postsService.getAll();
+  }
+
   @Get('post/:id')
   async getPostById(@Param('id') id: string): Promise<PostsEntity> {
     const post = await this.postsService.getById(id);
@@ -26,24 +36,14 @@ export class PostsController {
     return post;
   }
 
-  @Get('category/:id')
-  async getPostsByCategoryId(@Param('id') id: string): Promise<PostsEntity[]> {
-    return await this.postsService.getAllByCategoryId(id);
-  }
+  // @Get('category/:id')
+  // async getPostsByCategoryId(@Param('id') id: string): Promise<PostsEntity[]> {
+  //   return await this.postsService.getAllByCategoryId(id);
+  // }
 
   @Get('user/:id')
   async getPostsByUserId(@Param('id') id: string): Promise<PostsEntity[]> {
     return await this.postsService.getAllByUserId(id);
-  }
-
-  @Get('all')
-  async getAllPosts(): Promise<PostsEntity[]> {
-    return await this.postsService.getAll();
-  }
-
-  @Post('create')
-  async createPost(@Body() data: CreatePostDto): Promise<void> {
-    await this.postsService.create(data);
   }
 
   @Patch('post/:id')

@@ -14,7 +14,7 @@ export class CategoriesService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(dataDto: CreateCategoriesDto): Promise<void> {
+  async create(dataDto: CreateCategoriesDto): Promise<CategoriesEntity> {
     const { user_id, ...category_data } = dataDto;
 
     const category = this.categoriesRepository.create(category_data);
@@ -24,6 +24,8 @@ export class CategoriesService {
       throw new NotFoundException('User with this id is not exist');
     }
     await this.categoriesRepository.save(category);
+
+    return category;
   }
 
   async getById(id: string): Promise<CategoriesEntity> {
@@ -39,12 +41,9 @@ export class CategoriesService {
     });
   }
 
-  async getAllByUserIdAndTitle(
-    id: string,
-    title: string,
-  ): Promise<CategoriesEntity[]> {
+  async getAllByTitle(title: string): Promise<CategoriesEntity[]> {
     return await this.categoriesRepository.find({
-      where: [{ user: { id: id } }, { title: title }],
+      where: [{ title: title }],
       relations: ['user', 'posts'],
     });
   }

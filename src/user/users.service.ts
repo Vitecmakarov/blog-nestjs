@@ -17,9 +17,10 @@ export class UsersService {
     private readonly imageService: ImagesService,
   ) {}
 
-  async create(data: CreateUserDto): Promise<void> {
+  async create(data: CreateUserDto): Promise<UsersEntity> {
     const user = this.usersRepository.create(data);
     await this.usersRepository.save(user);
+    return user;
   }
 
   async getById(id: string): Promise<UsersEntity> {

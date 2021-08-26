@@ -21,7 +21,7 @@ export class PostsService {
     private readonly imagesService: ImagesService,
   ) {}
 
-  async create(dataDto: CreatePostDto): Promise<void> {
+  async create(dataDto: CreatePostDto): Promise<PostsEntity> {
     const { category_ids, user_id, image, ...post_data } = dataDto;
 
     const post = this.postsRepository.create(post_data);
@@ -42,6 +42,8 @@ export class PostsService {
     }
 
     await this.postsRepository.save(post);
+
+    return post;
   }
 
   async getAll(): Promise<PostsEntity[]> {
@@ -56,12 +58,12 @@ export class PostsService {
     });
   }
 
-  async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
-    return await this.postsRepository.find({
-      where: { categories: { id: categoryId } },
-      relations: ['user', 'categories', 'image', 'comments'],
-    });
-  }
+  // async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
+  //   return await this.postsRepository.find({
+  //     where: { categories: { id: categoryId } },
+  //     relations: ['user', 'categories', 'image', 'comments'],
+  //   });
+  // } // TODO: Solve the many to many searching problem
 
   async getAllByUserId(userId: string): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
@@ -73,7 +75,7 @@ export class PostsService {
   async update(id: string, data: UpdatePostDto): Promise<PostsEntity> {
     const { category_actions, image, ...post_data } = data;
     const post = await this.postsRepository.findOne(id, {
-      relations: ['categories', 'images'],
+      relations: ['categories', 'image'],
     });
 
     if (category_actions.length !== 0) {

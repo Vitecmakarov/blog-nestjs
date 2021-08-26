@@ -17,6 +17,11 @@ import { CommentsService } from './comments.service';
 export class CommentsController {
   constructor(private postCommentsService: CommentsService) {}
 
+  @Post('create')
+  async createComment(@Body() data: CreatePostCommentDto): Promise<void> {
+    await this.postCommentsService.create(data);
+  }
+
   @Get('comment/:id')
   async getCommentById(@Param('id') id: string): Promise<CommentsEntity> {
     const comment = await this.postCommentsService.getById(id);
@@ -38,11 +43,6 @@ export class CommentsController {
     @Param('id') id: string,
   ): Promise<CommentsEntity[]> {
     return await this.postCommentsService.getAllByPostId(id);
-  }
-
-  @Post('create')
-  async createComment(@Body() data: CreatePostCommentDto): Promise<void> {
-    await this.postCommentsService.create(data);
   }
 
   @Patch('comment/:id')

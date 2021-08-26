@@ -1,6 +1,3 @@
-import { lookup } from 'mime-types';
-import { basename } from 'path';
-import { readFile } from 'fs';
 import { promisify } from 'util';
 import { classToPlain } from 'class-transformer';
 import { config } from 'dotenv';
@@ -20,6 +17,12 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UpdateUserPasswordDto,
+} from '../../src/user/dto/users.dto';
+
 import { UsersEntity } from '../../src/user/users.entity';
 import { CategoriesEntity } from '../../src/category/categories.entity';
 import { PostsEntity } from '../../src/post/posts.entity';
@@ -36,6 +39,8 @@ config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
 describe('Users module', () => {
   let app: INestApplication;
+
+  let testEntities: TestEntities;
 
   let usersService: UsersService;
   let categoriesService: CategoriesService;
@@ -81,6 +86,13 @@ describe('Users module', () => {
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
     commentsEntityRepository = module.get(getRepositoryToken(CommentsEntity));
 
+    testEntities = new TestEntities(
+      usersService,
+      categoriesService,
+      postsService,
+      commentsService,
+    );
+
     await app.init();
   }, 15000);
 
@@ -102,17 +114,19 @@ describe('Users module', () => {
     const dataBeforeInsert = classToPlain(usersService.getAll());
     await expect(dataBeforeInsert).resolves.toEqual([]);
 
+    const userDto = new CreateUserDto(
+      'first_name_test',
+      'last_name_test',
+      'mobile_test',
+      'email_test',
+      'password_test',
+    );
+
     await request
       .agent(app.getHttpServer())
       .post('/users/register')
       .set('Accept', 'application/json')
-      .send({
-        first_name: 'first_name_test',
-        last_name: 'last_name_test',
-        mobile: 'mobile_test',
-        email: 'email_test',
-        password: 'password_test',
-      })
+      .send(userDto)
       .expect(201);
 
     const promiseUser = usersService.getAll();
@@ -121,10 +135,10 @@ describe('Users module', () => {
     await expect(dataAfterInsert).resolves.toEqual([
       {
         id: expect.any(String),
-        first_name: 'first_name_test',
-        last_name: 'last_name_test',
-        mobile: 'mobile_test',
-        email: 'email_test',
+        first_name: userDto.first_name,
+        last_name: userDto.last_name,
+        mobile: userDto.mobile,
+        email: userDto.email,
         created_posts: [],
         created_categories: [],
         created_comments: [],
@@ -139,7 +153,7 @@ describe('Users module', () => {
     const [user] = await promiseUser;
 
     const isPasswordSavedCorrectly = await bcrypt.compare(
-      'password_test',
+      userDto.password,
       user.password,
     );
     if (!isPasswordSavedCorrectly) {
@@ -148,141 +162,121 @@ describe('Users module', () => {
   });
 
   it('GET /users/user/:id', async () => {
-    const testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-      commentsService,
+    const userEntity = await testEntities.createTestUserEntity();
+    const categoryEntity = await testEntities.createTestCategoryEntity(
+      userEntity.id,
     );
-
-    const user = await testEntities.createTestUser();
-    const category = await testEntities.createTestCategory(user.id);
-    const post = await testEntities.createTestPost(user.id, [category.id]);
-    const comment = await testEntities.createTestComment(user.id, post.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
+      categoryEntity.id,
+    ]);
+    const commentEntity = await testEntities.createTestCommentEntity(
+      userEntity.id,
+      postEntity.id,
+    );
 
     const { body } = await request
       .agent(app.getHttpServer())
-      .get(`/users/user/${user.id}`)
+      .get(`/users/user/${userEntity.id}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
 
     expect(body).toEqual({
-      id: user.id,
-      first_name: 'first_name_test',
-      last_name: 'last_name_test',
-      mobile: 'mobile_test',
-      email: 'email_test',
+      id: userEntity.id,
+      first_name: userEntity.first_name,
+      last_name: userEntity.last_name,
+      mobile: userEntity.mobile,
+      email: userEntity.email,
       created_posts: [
         {
-          id: post.id,
-          title: 'title_test',
-          content: 'content_test',
+          id: postEntity.id,
+          title: postEntity.title,
+          content: postEntity.content,
           created_at: expect.any(String),
-          updated_at: null,
+          updated_at: postEntity.updated_at,
         },
       ],
       created_categories: [
         {
-          id: category.id,
-          title: 'title_test',
+          id: categoryEntity.id,
+          title: categoryEntity.title,
         },
       ],
       created_comments: [
         {
-          id: comment.id,
-          content: 'content_test',
+          id: commentEntity.id,
+          content: commentEntity.content,
           created_at: expect.any(String),
-          updated_at: null,
+          updated_at: commentEntity.updated_at,
         },
       ],
       avatar: null,
       register_at: expect.any(String),
-      last_login: null,
-      profile_desc: null,
-      is_banned: false,
+      last_login: userEntity.last_login,
+      profile_desc: userEntity.profile_desc,
+      is_banned: userEntity.is_banned,
     });
   });
 
   it('PATCH /users/user/:id', async () => {
-    const testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-      commentsService,
+    const userEntity = await testEntities.createTestUserEntity();
+    const imageDto = await testEntities.createTestImageDto();
+
+    const userDto = new UpdateUserDto(
+      'first_name_test_changed',
+      'last_name_test_changed',
+      'this is test description',
+      imageDto,
     );
-
-    const user = await testEntities.createTestUser();
-
-    const read = promisify(readFile);
-    const pathToTestFile = `${__dirname}/test_image.png`;
-
-    const image_data = await read(pathToTestFile, { encoding: 'base64' });
-    const test_image = {
-      filename: basename(pathToTestFile),
-      type: lookup(pathToTestFile),
-      data: image_data,
-    };
 
     await request
       .agent(app.getHttpServer())
-      .patch(`/users/user/${user.id}`)
+      .patch(`/users/user/${userEntity.id}`)
       .set('Accept', 'application/json')
-      .send({
-        first_name: 'first_name_test_changed',
-        last_name: 'last_name_test_changed',
-        profile_desc: 'this is test description',
-        avatar: test_image,
-      })
+      .send(userDto)
       .expect(200);
 
     const dataAfterUpdate = classToPlain(usersService.getAll());
     await expect(dataAfterUpdate).resolves.toEqual([
       {
-        id: user.id,
-        first_name: 'first_name_test_changed',
-        last_name: 'last_name_test_changed',
-        mobile: 'mobile_test',
-        email: 'email_test',
+        id: userEntity.id,
+        first_name: userDto.first_name,
+        last_name: userDto.last_name,
+        mobile: userEntity.mobile,
+        email: userEntity.email,
         created_posts: [],
         created_categories: [],
         created_comments: [],
         avatar: {
           id: expect.any(String),
           path: expect.any(String),
-          size: expect.any(Number),
           extension: expect.any(String),
+          size: expect.any(Number),
           upload_timestamp: expect.any(Date),
         },
         register_at: expect.any(Date),
-        last_login: null,
-        profile_desc: 'this is test description',
-        is_banned: expect.any(Boolean),
+        last_login: userEntity.last_login,
+        profile_desc: userDto.profile_desc,
+        is_banned: userEntity.is_banned,
       },
     ]);
   });
 
   it('PATCH /users/pass/user/:id', async () => {
-    const testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-      commentsService,
-    );
-
-    let user = await testEntities.createTestUser();
+    let user = await testEntities.createTestUserEntity();
+    const userDto = new UpdateUserPasswordDto('new_password');
 
     await request
       .agent(app.getHttpServer())
       .patch(`/users/pass/user/${user.id}`)
       .set('Accept', 'application/json')
-      .send({ password: 'new_password' })
+      .send(userDto)
       .expect(200);
 
     [user] = await usersService.getAll();
 
     const isPasswordChanged = await bcrypt.compare(
-      'new_password',
+      userDto.password,
       user.password,
     );
     if (!isPasswordChanged) {
@@ -291,17 +285,12 @@ describe('Users module', () => {
   });
 
   it('DELETE /users/user/:id', async () => {
-    const testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-      commentsService,
-    );
-
-    const user = await testEntities.createTestUser();
-    const category = await testEntities.createTestCategory(user.id);
-    const post = await testEntities.createTestPost(user.id, [category.id]);
-    await testEntities.createTestComment(user.id, post.id);
+    const user = await testEntities.createTestUserEntity();
+    const category = await testEntities.createTestCategoryEntity(user.id);
+    const post = await testEntities.createTestPostEntity(user.id, [
+      category.id,
+    ]);
+    await testEntities.createTestCommentEntity(user.id, post.id);
 
     await request
       .agent(app.getHttpServer())

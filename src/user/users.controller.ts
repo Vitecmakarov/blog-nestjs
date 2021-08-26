@@ -23,6 +23,11 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Post('register')
+  async registerUser(@Body() data: CreateUserDto): Promise<void> {
+    await this.usersService.create(data);
+  }
+
   @Get('user/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getUserById(@Param('id') id: string): Promise<UsersEntity> {
@@ -31,11 +36,6 @@ export class UsersController {
       throw new NotFoundException('User not found');
     }
     return user;
-  }
-
-  @Post('register')
-  async registerUser(@Body() data: CreateUserDto): Promise<void> {
-    await this.usersService.create(data);
   }
 
   @Patch('user/:id')

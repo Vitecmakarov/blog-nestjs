@@ -18,7 +18,7 @@ export class CommentsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(dataDto: CreatePostCommentDto): Promise<void> {
+  async create(dataDto: CreatePostCommentDto): Promise<CommentsEntity> {
     const { post_id, user_id, ...post_comment_data } = dataDto;
 
     const postComment = this.postCommentsRepository.create(post_comment_data);
@@ -34,6 +34,8 @@ export class CommentsService {
     }
 
     await this.postCommentsRepository.save(postComment);
+
+    return postComment;
   }
 
   async getById(id: string): Promise<CommentsEntity> {

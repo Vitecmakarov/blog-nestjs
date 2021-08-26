@@ -28,6 +28,20 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(50)
   password: string;
+
+  constructor(
+    first_name: string,
+    last_name: string,
+    mobile: string,
+    email: string,
+    password: string,
+  ) {
+    this.first_name = first_name;
+    this.last_name = last_name;
+    this.mobile = mobile;
+    this.email = email;
+    this.password = password;
+  }
 }
 
 export class UpdateUserDto {
@@ -48,9 +62,25 @@ export class UpdateUserDto {
 
   @IsOptional()
   avatar?: CreateImageDto;
+
+  constructor(
+    first_name?: string,
+    last_name?: string,
+    profile_desc?: string,
+    avatar?: CreateImageDto,
+  ) {
+    this.first_name = first_name;
+    this.last_name = last_name;
+    this.profile_desc = profile_desc;
+    this.avatar = avatar;
+  }
 }
 
 export class UpdateUserPasswordDto {
   @IsString()
   password: string;
+
+  constructor(password: string) {
+    this.password = password;
+  }
 }
