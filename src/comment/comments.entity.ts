@@ -30,6 +30,6 @@ export class CommentsEntity extends BaseEntity {
   })
   created_at: string;
 
-  @Column({ type: 'timestamp', nullable: true }) // TODO
+  @Column({ type: 'timestamp', nullable: true })
   updated_at: string;
 }

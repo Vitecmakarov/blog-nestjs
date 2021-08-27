@@ -101,6 +101,7 @@ export class PostsService {
       }
       post.image = await this.imagesService.create(image);
     }
+    post.updated_at = String(Date.now());
 
     return await this.postsRepository.save({ ...post, ...post_data });
   }

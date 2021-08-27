@@ -59,7 +59,9 @@ export class CommentsService {
   }
 
   async update(id: string, dataDto: UpdatePostCommentDto): Promise<void> {
-    await this.postCommentsRepository.update({ id }, dataDto);
+    const comment = await this.postCommentsRepository.findOne(id);
+    comment.updated_at = String(Date.now());
+    await this.postCommentsRepository.save({ ...comment, ...dataDto });
   }
 
   async remove(id: string): Promise<void> {
