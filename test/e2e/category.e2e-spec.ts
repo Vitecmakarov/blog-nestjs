@@ -11,7 +11,7 @@ import { CategoriesModule } from '../../src/category/categories.module';
 import { PostsModule } from '../../src/post/posts.module';
 import { UsersModule } from '../../src/user/users.module';
 
-import { CreateCategoriesDto, UpdateCategoriesDto} from '../../src/category/dto/categories.dto';
+import { CreateCategoriesDto, UpdateCategoriesDto } from '../../src/category/dto/categories.dto';
 
 import { CategoriesEntity } from '../../src/category/categories.entity';
 import { PostsEntity } from '../../src/post/posts.entity';
@@ -21,20 +21,24 @@ import { CategoriesService } from '../../src/category/categories.service';
 import { PostsService } from '../../src/post/posts.service';
 import { UsersService } from '../../src/user/users.service';
 
-import { TestEntities } from './test_entities/test.entites';
+import { UserTestEntity } from './test_entities/user.test.entity';
+import { CategoryTestEntity } from './test_entities/category.test.entity';
+import { PostTestEntity } from './test_entities/post.test.entity';
 
 describe('Categories module', () => {
   let app: INestApplication;
 
-  let testEntities: TestEntities;
+  let usersEntityRepository: Repository<UsersEntity>;
+  let postsEntityRepository: Repository<PostsEntity>;
+  let categoriesEntityRepository: Repository<CategoriesEntity>;
 
   let usersService: UsersService;
   let postsService: PostsService;
   let categoriesService: CategoriesService;
 
-  let usersEntityRepository: Repository<UsersEntity>;
-  let postsEntityRepository: Repository<PostsEntity>;
-  let categoriesEntityRepository: Repository<CategoriesEntity>;
+  let userTestEntity: UserTestEntity;
+  let categoryTestEntity: CategoryTestEntity;
+  let postTestEntity: PostTestEntity;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -57,15 +61,17 @@ describe('Categories module', () => {
 
     app = module.createNestApplication();
 
-    usersService = module.get(UsersService);
-    postsService = module.get(PostsService);
-    categoriesService = module.get(CategoriesService);
-
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
     categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
 
-    testEntities = new TestEntities(usersService, categoriesService, postsService);
+    usersService = module.get(UsersService);
+    postsService = module.get(PostsService);
+    categoriesService = module.get(CategoriesService);
+
+    userTestEntity = new UserTestEntity(usersService);
+    categoryTestEntity = new CategoryTestEntity(categoriesService);
+    postTestEntity = new PostTestEntity(postsService);
 
     await app.init();
   }, 15000);
@@ -85,7 +91,7 @@ describe('Categories module', () => {
     const dataBeforeInsert = classToPlain(categoriesService.getAll());
     await expect(dataBeforeInsert).resolves.toEqual([]);
 
-    const userEntity = await testEntities.createTestUserEntity();
+    const userEntity = await userTestEntity.create();
 
     const categoryDto = new CreateCategoriesDto(userEntity.id, 'title_test');
 
@@ -118,9 +124,9 @@ describe('Categories module', () => {
   });
 
   it('GET (/categories/category/:id, /categories/user/:id, /categories/title/:title)', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
+    const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
 
     const expectedResponseObj = {
       id: categoryEntity.id,
@@ -174,8 +180,8 @@ describe('Categories module', () => {
   });
 
   it('PATCH /categories/category/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
 
     const categoryDto = new UpdateCategoriesDto('title_changed');
 
@@ -208,9 +214,9 @@ describe('Categories module', () => {
   });
 
   it('DELETE /categories/category/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
+    await postTestEntity.create(userEntity.id, [categoryEntity.id]);
 
     await request
       .agent(app.getHttpServer())

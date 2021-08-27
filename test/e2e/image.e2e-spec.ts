@@ -1,3 +1,7 @@
+import { promisify } from 'util';
+import { config } from 'dotenv';
+
+import * as rimraf from 'rimraf';
 import * as request from 'supertest';
 
 import { INestApplication } from '@nestjs/common';
@@ -19,21 +23,29 @@ import { PostsService } from '../../src/post/posts.service';
 import { CategoriesService } from '../../src/category/categories.service';
 import { UsersService } from '../../src/user/users.service';
 
-import { TestEntities } from './test_entities/test.entites';
+import { UserTestEntity } from './test_entities/user.test.entity';
+import { CategoryTestEntity } from './test_entities/category.test.entity';
+import { PostTestEntity } from './test_entities/post.test.entity';
+import { ImageTestDto } from './test_entities/image.test.dto';
+
+config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
 describe('Categories module', () => {
   let app: INestApplication;
-
-  let testEntities: TestEntities;
-
-  let categoriesService: CategoriesService;
-  let usersService: UsersService;
-  let postsService: PostsService;
 
   let imagesEntityRepository: Repository<ImagesEntity>;
   let categoriesEntityRepository: Repository<CategoriesEntity>;
   let usersEntityRepository: Repository<UsersEntity>;
   let postsEntityRepository: Repository<PostsEntity>;
+
+  let categoriesService: CategoriesService;
+  let usersService: UsersService;
+  let postsService: PostsService;
+
+  let userTestEntity: UserTestEntity;
+  let categoryTestEntity: CategoryTestEntity;
+  let postTestEntity: PostTestEntity;
+  let imageTestDto: ImageTestDto;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -57,16 +69,19 @@ describe('Categories module', () => {
 
     app = module.createNestApplication();
 
-    usersService = module.get(UsersService);
-    postsService = module.get(PostsService);
-    categoriesService = module.get(CategoriesService);
-
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
     categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
     imagesEntityRepository = module.get(getRepositoryToken(ImagesEntity));
 
-    testEntities = new TestEntities(usersService, categoriesService, postsService);
+    usersService = module.get(UsersService);
+    postsService = module.get(PostsService);
+    categoriesService = module.get(CategoriesService);
+
+    userTestEntity = new UserTestEntity(usersService);
+    categoryTestEntity = new CategoryTestEntity(categoriesService);
+    postTestEntity = new PostTestEntity(postsService);
+    imageTestDto = new ImageTestDto();
 
     await app.init();
   }, 15000);
@@ -81,13 +96,15 @@ describe('Categories module', () => {
 
   afterAll(async () => {
     await app.close();
+    const deleteTestImagesDir = promisify(rimraf);
+    await deleteTestImagesDir(process.env.PWD + process.env.IMAGES_DIR);
   });
 
   it('GET (/images/image/:id, /images/post/:id, /images/user/:id)', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    const imageDto = await testEntities.createTestImageDto();
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id], imageDto);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
+    const imageDto = await imageTestDto.create();
+    const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id], imageDto);
 
     await usersService.update(userEntity.id, {
       avatar: imageDto,
