@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
 
 import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
 import { PostsEntity } from './posts.entity';
@@ -36,10 +27,10 @@ export class PostsController {
     return post;
   }
 
-  // @Get('category/:id')
-  // async getPostsByCategoryId(@Param('id') id: string): Promise<PostsEntity[]> {
-  //   return await this.postsService.getAllByCategoryId(id);
-  // }
+  @Get('category/:id')
+  async getPostsByCategoryId(@Param('id') id: string): Promise<PostsEntity[]> {
+    return await this.postsService.getAllByCategoryId(id);
+  }
 
   @Get('user/:id')
   async getPostsByUserId(@Param('id') id: string): Promise<PostsEntity[]> {
@@ -47,10 +38,7 @@ export class PostsController {
   }
 
   @Patch('post/:id')
-  async updatePost(
-    @Param('id') id: string,
-    @Body() data: UpdatePostDto,
-  ): Promise<void> {
+  async updatePost(@Param('id') id: string, @Body() data: UpdatePostDto): Promise<void> {
     const post = await this.postsService.getById(id);
     if (!post) {
       throw new NotFoundException('Post not found');

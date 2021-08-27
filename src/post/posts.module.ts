@@ -9,12 +9,7 @@ import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PostsEntity]),
-    CategoriesModule,
-    UsersModule,
-    ImagesModule,
-  ],
+  imports: [TypeOrmModule.forFeature([PostsEntity]), CategoriesModule, UsersModule, ImagesModule],
   providers: [PostsService],
   controllers: [PostsController],
   exports: [PostsService],

@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsMobilePhone,
-  IsEmail,
-  MaxLength,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsMobilePhone, IsEmail, MaxLength, IsOptional } from 'class-validator';
 
 import { CreateImageDto } from '../../image/dto/images.dto';
 
@@ -29,13 +23,7 @@ export class CreateUserDto {
   @MaxLength(50)
   password: string;
 
-  constructor(
-    first_name: string,
-    last_name: string,
-    mobile: string,
-    email: string,
-    password: string,
-  ) {
+  constructor(first_name: string, last_name: string, mobile: string, email: string, password: string) {
     this.first_name = first_name;
     this.last_name = last_name;
     this.mobile = mobile;
@@ -63,12 +51,7 @@ export class UpdateUserDto {
   @IsOptional()
   avatar?: CreateImageDto;
 
-  constructor(
-    first_name?: string,
-    last_name?: string,
-    profile_desc?: string,
-    avatar?: CreateImageDto,
-  ) {
+  constructor(first_name?: string, last_name?: string, profile_desc?: string, avatar?: CreateImageDto) {
     this.first_name = first_name;
     this.last_name = last_name;
     this.profile_desc = profile_desc;

@@ -11,10 +11,7 @@ import { CategoriesModule } from '../../src/category/categories.module';
 import { PostsModule } from '../../src/post/posts.module';
 import { UsersModule } from '../../src/user/users.module';
 
-import {
-  CreateCategoriesDto,
-  UpdateCategoriesDto,
-} from '../../src/category/dto/categories.dto';
+import { CreateCategoriesDto, UpdateCategoriesDto} from '../../src/category/dto/categories.dto';
 
 import { CategoriesEntity } from '../../src/category/categories.entity';
 import { PostsEntity } from '../../src/post/posts.entity';
@@ -66,15 +63,9 @@ describe('Categories module', () => {
 
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
-    categoriesEntityRepository = module.get(
-      getRepositoryToken(CategoriesEntity),
-    );
+    categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
 
-    testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-    );
+    testEntities = new TestEntities(usersService, categoriesService, postsService);
 
     await app.init();
   }, 15000);
@@ -98,6 +89,23 @@ describe('Categories module', () => {
 
     const categoryDto = new CreateCategoriesDto(userEntity.id, 'title_test');
 
+    const expectedObj = {
+      id: expect.any(String),
+      title: categoryDto.title,
+      user: {
+        id: userEntity.id,
+        first_name: userEntity.first_name,
+        last_name: userEntity.last_name,
+        mobile: userEntity.mobile,
+        email: userEntity.email,
+        register_at: userEntity.register_at,
+        last_login: userEntity.last_login,
+        profile_desc: userEntity.profile_desc,
+        is_banned: userEntity.is_banned,
+      },
+      posts: [],
+    };
+
     await request
       .agent(app.getHttpServer())
       .post('/categories/create')
@@ -106,43 +114,15 @@ describe('Categories module', () => {
       .expect(201);
 
     const dataAfterInsert = classToPlain(categoriesService.getAll());
-    await expect(dataAfterInsert).resolves.toEqual([
-      {
-        id: expect.any(String),
-        title: categoryDto.title,
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          register_at: userEntity.register_at,
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-        posts: [],
-      },
-    ]);
+    await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
   });
 
-  it('GET /categories/category/:id', async () => {
+  it('GET (/categories/category/:id, /categories/user/:id, /categories/title/:title)', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
 
-    const { body } = await request
-      .agent(app.getHttpServer())
-      .get(`/categories/category/${categoryEntity.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-
-    expect(body).toEqual({
+    const expectedResponseObj = {
       id: categoryEntity.id,
       title: categoryEntity.title,
       posts: [
@@ -166,109 +146,55 @@ describe('Categories module', () => {
         profile_desc: userEntity.profile_desc,
         is_banned: userEntity.is_banned,
       },
-    });
-  });
+    };
 
-  it('GET /categories/user/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
+    let response = await request
+      .agent(app.getHttpServer())
+      .get(`/categories/category/${categoryEntity.id}`)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(200);
+    expect(response.body).toEqual(expectedResponseObj);
 
-    const { body } = await request
+    response = await request
       .agent(app.getHttpServer())
       .get(`/categories/user/${userEntity.id}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
+    expect(response.body).toEqual([expectedResponseObj]);
 
-    expect(body).toEqual([
-      {
-        id: categoryEntity.id,
-        title: categoryEntity.title,
-        posts: [
-          {
-            id: postEntity.id,
-            title: postEntity.title,
-            content: postEntity.content,
-            created_at: expect.any(String),
-            updated_at: postEntity.updated_at,
-          },
-        ],
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          password: userEntity.password,
-          register_at: expect.any(String),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-      },
-    ]);
-  });
-
-  it('GET /categories/title/:title', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
-
-    const { body } = await request
+    response = await request
       .agent(app.getHttpServer())
       .get(`/categories/title/${categoryEntity.title}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
-
-    expect(body).toEqual([
-      {
-        id: categoryEntity.id,
-        title: categoryEntity.title,
-        posts: [
-          {
-            id: postEntity.id,
-            title: postEntity.title,
-            content: postEntity.content,
-            created_at: expect.any(String),
-            updated_at: postEntity.updated_at,
-          },
-        ],
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          password: userEntity.password,
-          register_at: expect.any(String),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-      },
-    ]);
+    expect(response.body).toEqual([expectedResponseObj]);
   });
 
   it('PATCH /categories/category/:id', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
 
     const categoryDto = new UpdateCategoriesDto('title_changed');
+
+    const expectedObj = {
+      id: categoryEntity.id,
+      title: categoryDto.title,
+      posts: [],
+      user: {
+        id: userEntity.id,
+        first_name: userEntity.first_name,
+        last_name: userEntity.last_name,
+        mobile: userEntity.mobile,
+        email: userEntity.email,
+        register_at: expect.any(Date),
+        last_login: userEntity.last_login,
+        profile_desc: userEntity.profile_desc,
+        is_banned: userEntity.is_banned,
+      },
+    };
 
     await request
       .agent(app.getHttpServer())
@@ -278,40 +204,12 @@ describe('Categories module', () => {
       .expect(200);
 
     const dataAfterUpdate = classToPlain(categoriesService.getAll());
-
-    expect(dataAfterUpdate).resolves.toEqual([
-      {
-        id: categoryEntity.id,
-        title: categoryDto.title,
-        posts: [
-          {
-            id: postEntity.id,
-            title: postEntity.title,
-            content: postEntity.content,
-            created_at: expect.any(Date),
-            updated_at: postEntity.updated_at,
-          },
-        ],
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          register_at: expect.any(Date),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-      },
-    ]);
+    await expect(dataAfterUpdate).resolves.toEqual([expectedObj]);
   });
 
   it('DELETE /categories/category/:id', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
     await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
 
     await request
@@ -321,7 +219,6 @@ describe('Categories module', () => {
       .expect(200);
 
     const dataAfterUpdate = classToPlain(categoriesService.getAll());
-
     await expect(dataAfterUpdate).resolves.toEqual([]);
   });
 });

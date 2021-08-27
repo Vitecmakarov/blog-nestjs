@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  NotFoundException,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, StreamableFile } from '@nestjs/common';
 
 import { ImagesService } from './images.service';
 import { createReadStream } from 'fs';

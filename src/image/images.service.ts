@@ -99,9 +99,7 @@ export class ImagesService {
     await this.imagesRepository.delete(id);
   }
 
-  private static async _createImageDirIfNotExist(
-    filename: string,
-  ): Promise<string> {
+  private static async _createImageDirIfNotExist(filename: string): Promise<string> {
     const fileDir = `${imagesDir}/${filename.slice(0, 2)}`;
 
     const checkIfDirExist = promisify(access);

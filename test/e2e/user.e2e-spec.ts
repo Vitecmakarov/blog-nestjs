@@ -17,11 +17,7 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  UpdateUserPasswordDto,
-} from '../../src/user/dto/users.dto';
+import { CreateUserDto, UpdateUserDto, UpdateUserPasswordDto } from '../../src/user/dto/users.dto';
 
 import { UsersEntity } from '../../src/user/users.entity';
 import { CategoriesEntity } from '../../src/category/categories.entity';
@@ -80,18 +76,11 @@ describe('Users module', () => {
     commentsService = module.get(CommentsService);
 
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
-    categoriesEntityRepository = module.get(
-      getRepositoryToken(CategoriesEntity),
-    );
+    categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
     commentsEntityRepository = module.get(getRepositoryToken(CommentsEntity));
 
-    testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-      commentsService,
-    );
+    testEntities = new TestEntities(usersService, categoriesService, postsService, commentsService);
 
     await app.init();
   }, 15000);
@@ -122,6 +111,22 @@ describe('Users module', () => {
       'password_test',
     );
 
+    const expectedObj = {
+      id: expect.any(String),
+      first_name: userDto.first_name,
+      last_name: userDto.last_name,
+      mobile: userDto.mobile,
+      email: userDto.email,
+      created_posts: [],
+      created_categories: [],
+      created_comments: [],
+      avatar: null,
+      register_at: expect.any(Date),
+      last_login: null,
+      profile_desc: null,
+      is_banned: false,
+    };
+
     await request
       .agent(app.getHttpServer())
       .post('/users/register')
@@ -132,30 +137,11 @@ describe('Users module', () => {
     const promiseUser = usersService.getAll();
 
     const dataAfterInsert = classToPlain(promiseUser);
-    await expect(dataAfterInsert).resolves.toEqual([
-      {
-        id: expect.any(String),
-        first_name: userDto.first_name,
-        last_name: userDto.last_name,
-        mobile: userDto.mobile,
-        email: userDto.email,
-        created_posts: [],
-        created_categories: [],
-        created_comments: [],
-        avatar: null,
-        register_at: expect.any(Date),
-        last_login: null,
-        profile_desc: null,
-        is_banned: false,
-      },
-    ]);
+    await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
 
     const [user] = await promiseUser;
 
-    const isPasswordSavedCorrectly = await bcrypt.compare(
-      userDto.password,
-      user.password,
-    );
+    const isPasswordSavedCorrectly = await bcrypt.compare(userDto.password, user.password);
     if (!isPasswordSavedCorrectly) {
       throw new Error('Password is not saved correctly');
     }
@@ -163,25 +149,11 @@ describe('Users module', () => {
 
   it('GET /users/user/:id', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
-    const commentEntity = await testEntities.createTestCommentEntity(
-      userEntity.id,
-      postEntity.id,
-    );
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const commentEntity = await testEntities.createTestCommentEntity(userEntity.id, postEntity.id);
 
-    const { body } = await request
-      .agent(app.getHttpServer())
-      .get(`/users/user/${userEntity.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-
-    expect(body).toEqual({
+    const expectedResponseObj = {
       id: userEntity.id,
       first_name: userEntity.first_name,
       last_name: userEntity.last_name,
@@ -215,7 +187,16 @@ describe('Users module', () => {
       last_login: userEntity.last_login,
       profile_desc: userEntity.profile_desc,
       is_banned: userEntity.is_banned,
-    });
+    };
+
+    const { body } = await request
+      .agent(app.getHttpServer())
+      .get(`/users/user/${userEntity.id}`)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(body).toEqual(expectedResponseObj);
   });
 
   it('PATCH /users/user/:id', async () => {
@@ -229,6 +210,28 @@ describe('Users module', () => {
       imageDto,
     );
 
+    const expectedObj = {
+      id: userEntity.id,
+      first_name: userDto.first_name,
+      last_name: userDto.last_name,
+      mobile: userEntity.mobile,
+      email: userEntity.email,
+      created_posts: [],
+      created_categories: [],
+      created_comments: [],
+      avatar: {
+        id: expect.any(String),
+        path: expect.any(String),
+        extension: expect.any(String),
+        size: expect.any(Number),
+        upload_timestamp: expect.any(Date),
+      },
+      register_at: expect.any(Date),
+      last_login: userEntity.last_login,
+      profile_desc: userDto.profile_desc,
+      is_banned: userEntity.is_banned,
+    };
+
     await request
       .agent(app.getHttpServer())
       .patch(`/users/user/${userEntity.id}`)
@@ -237,29 +240,7 @@ describe('Users module', () => {
       .expect(200);
 
     const dataAfterUpdate = classToPlain(usersService.getAll());
-    await expect(dataAfterUpdate).resolves.toEqual([
-      {
-        id: userEntity.id,
-        first_name: userDto.first_name,
-        last_name: userDto.last_name,
-        mobile: userEntity.mobile,
-        email: userEntity.email,
-        created_posts: [],
-        created_categories: [],
-        created_comments: [],
-        avatar: {
-          id: expect.any(String),
-          path: expect.any(String),
-          extension: expect.any(String),
-          size: expect.any(Number),
-          upload_timestamp: expect.any(Date),
-        },
-        register_at: expect.any(Date),
-        last_login: userEntity.last_login,
-        profile_desc: userDto.profile_desc,
-        is_banned: userEntity.is_banned,
-      },
-    ]);
+    await expect(dataAfterUpdate).resolves.toEqual([expectedObj]);
   });
 
   it('PATCH /users/pass/user/:id', async () => {
@@ -275,10 +256,7 @@ describe('Users module', () => {
 
     [user] = await usersService.getAll();
 
-    const isPasswordChanged = await bcrypt.compare(
-      userDto.password,
-      user.password,
-    );
+    const isPasswordChanged = await bcrypt.compare(userDto.password, user.password);
     if (!isPasswordChanged) {
       throw new Error('Password is not changed');
     }
@@ -287,9 +265,7 @@ describe('Users module', () => {
   it('DELETE /users/user/:id', async () => {
     const user = await testEntities.createTestUserEntity();
     const category = await testEntities.createTestCategoryEntity(user.id);
-    const post = await testEntities.createTestPostEntity(user.id, [
-      category.id,
-    ]);
+    const post = await testEntities.createTestPostEntity(user.id, [category.id]);
     await testEntities.createTestCommentEntity(user.id, post.id);
 
     await request

@@ -1,11 +1,4 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsString,
-  IsUUID,
-  MaxLength,
-  IsOptional,
-} from 'class-validator';
+import { ArrayMinSize, IsArray, IsString, IsUUID, MaxLength, IsOptional } from 'class-validator';
 
 import { CreateImageDto } from '../../image/dto/images.dto';
 import { UpdateCategoryAction } from '../../category/dto/categories.dto';
@@ -29,13 +22,7 @@ export class CreatePostDto {
   @IsOptional()
   image?: CreateImageDto;
 
-  constructor(
-    user_id: string,
-    category_ids: string[],
-    title: string,
-    content: string,
-    image?: CreateImageDto,
-  ) {
+  constructor(user_id: string, category_ids: string[], title: string, content: string, image?: CreateImageDto) {
     this.user_id = user_id;
     this.category_ids = category_ids;
     this.title = title;
@@ -62,12 +49,7 @@ export class UpdatePostDto {
   @IsOptional()
   image?: CreateImageDto;
 
-  constructor(
-    category_actions?: UpdateCategoryAction[],
-    title?: string,
-    content?: string,
-    image?: CreateImageDto,
-  ) {
+  constructor(category_actions?: UpdateCategoryAction[], title?: string, content?: string, image?: CreateImageDto) {
     this.category_actions = category_actions;
     this.title = title;
     this.content = content;

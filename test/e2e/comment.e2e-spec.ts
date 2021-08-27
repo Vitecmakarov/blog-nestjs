@@ -13,10 +13,7 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
-import {
-  CreatePostCommentDto,
-  UpdatePostCommentDto,
-} from '../../src/comment/dto/comments.dto';
+import { CreatePostCommentDto, UpdatePostCommentDto } from '../../src/comment/dto/comments.dto';
 
 import { UsersEntity } from '../../src/user/users.entity';
 import { CategoriesEntity } from '../../src/category/categories.entity';
@@ -73,18 +70,11 @@ describe('Posts module', () => {
     commentsService = module.get(CommentsService);
 
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
-    categoriesEntityRepository = module.get(
-      getRepositoryToken(CategoriesEntity),
-    );
+    categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
     commentsEntityRepository = module.get(getRepositoryToken(CommentsEntity));
 
-    testEntities = new TestEntities(
-      usersService,
-      categoriesService,
-      postsService,
-      commentsService,
-    );
+    testEntities = new TestEntities(usersService, categoriesService, postsService, commentsService);
 
     await app.init();
   }, 15000);
@@ -106,18 +96,35 @@ describe('Posts module', () => {
     await expect(dataBeforeInsert).resolves.toEqual([]);
 
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
 
-    const commentDto = new CreatePostCommentDto(
-      userEntity.id,
-      postEntity.id,
-      'content_test',
-    );
+    const commentDto = new CreatePostCommentDto(userEntity.id, postEntity.id, 'content_test');
+
+    const expectedObj = {
+      id: expect.any(String),
+      content: commentDto.content,
+      user: {
+        id: userEntity.id,
+        first_name: userEntity.first_name,
+        last_name: userEntity.last_name,
+        mobile: userEntity.mobile,
+        email: userEntity.email,
+        register_at: expect.any(Date),
+        last_login: userEntity.last_login,
+        profile_desc: userEntity.profile_desc,
+        is_banned: userEntity.is_banned,
+      },
+      post: {
+        id: postEntity.id,
+        title: postEntity.title,
+        content: postEntity.content,
+        created_at: expect.any(Date),
+        updated_at: postEntity.updated_at,
+      },
+      created_at: expect.any(Date),
+      updated_at: null,
+    };
 
     await request
       .agent(app.getHttpServer())
@@ -127,55 +134,16 @@ describe('Posts module', () => {
       .expect(201);
 
     const dataAfterInsert = classToPlain(commentsService.getAll());
-    await expect(dataAfterInsert).resolves.toEqual([
-      {
-        id: expect.any(String),
-        content: commentDto.content,
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          register_at: expect.any(Date),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-        post: {
-          id: postEntity.id,
-          title: postEntity.title,
-          content: postEntity.content,
-          created_at: expect.any(Date),
-          updated_at: postEntity.updated_at,
-        },
-        created_at: expect.any(Date),
-        updated_at: null,
-      },
-    ]);
+    await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
   });
 
-  it('GET /comments/comment/:id', async () => {
+  it('GET (/comments/comment/:id, /comments/user/:id, /comments/post/:id)', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const commentEntity = await testEntities.createTestCommentEntity(userEntity.id, postEntity.id);
 
-    const commentEntity = await testEntities.createTestCommentEntity(
-      userEntity.id,
-      postEntity.id,
-    );
-    const { body } = await request
-      .agent(app.getHttpServer())
-      .get(`/comments/comment/${commentEntity.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-
-    expect(body).toEqual({
+    const expectedResponseObj = {
       id: commentEntity.id,
       content: commentEntity.content,
       user: {
@@ -199,122 +167,65 @@ describe('Posts module', () => {
       },
       created_at: expect.any(String),
       updated_at: null,
-    });
-  });
+    };
 
-  it('GET /comments/user/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
+    let response = await request
+      .agent(app.getHttpServer())
+      .get(`/comments/comment/${commentEntity.id}`)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(200);
+    expect(response.body).toEqual(expectedResponseObj);
 
-    const commentEntity = await testEntities.createTestCommentEntity(
-      userEntity.id,
-      postEntity.id,
-    );
-    const { body } = await request
+    response = await request
       .agent(app.getHttpServer())
       .get(`/comments/user/${userEntity.id}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
+    expect(response.body).toEqual([expectedResponseObj]);
 
-    expect(body).toEqual([
-      {
-        id: expect.any(String),
-        content: commentEntity.content,
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          password: expect.any(String),
-          register_at: expect.any(String),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-        post: {
-          id: postEntity.id,
-          title: postEntity.title,
-          content: postEntity.content,
-          created_at: expect.any(String),
-          updated_at: postEntity.updated_at,
-        },
-        created_at: expect.any(String),
-        updated_at: null,
-      },
-    ]);
-  });
-
-  it('GET /comments/post/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
-
-    const commentEntity = await testEntities.createTestCommentEntity(
-      userEntity.id,
-      postEntity.id,
-    );
-    const { body } = await request
+    response = await request
       .agent(app.getHttpServer())
       .get(`/comments/post/${postEntity.id}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
-
-    expect(body).toEqual([
-      {
-        id: expect.any(String),
-        content: commentEntity.content,
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          password: expect.any(String),
-          register_at: expect.any(String),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-        post: {
-          id: postEntity.id,
-          title: postEntity.title,
-          content: postEntity.content,
-          created_at: expect.any(String),
-          updated_at: postEntity.updated_at,
-        },
-        created_at: expect.any(String),
-        updated_at: null,
-      },
-    ]);
+    expect(response.body).toEqual([expectedResponseObj]);
   });
 
   it('PATCH /comments/comment/:id', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
-
-    const commentEntity = await testEntities.createTestCommentEntity(
-      userEntity.id,
-      postEntity.id,
-    );
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const commentEntity = await testEntities.createTestCommentEntity(userEntity.id, postEntity.id);
 
     const commentDto = new UpdatePostCommentDto('content_test');
+
+    const expectedObj = {
+      id: commentEntity.id,
+      content: commentDto.content,
+      user: {
+        id: userEntity.id,
+        first_name: userEntity.first_name,
+        last_name: userEntity.last_name,
+        mobile: userEntity.mobile,
+        email: userEntity.email,
+        register_at: expect.any(Date),
+        last_login: userEntity.last_login,
+        profile_desc: userEntity.profile_desc,
+        is_banned: userEntity.is_banned,
+      },
+      post: {
+        id: postEntity.id,
+        title: postEntity.title,
+        content: postEntity.content,
+        created_at: expect.any(Date),
+        updated_at: postEntity.updated_at,
+      },
+      created_at: expect.any(Date),
+      updated_at: null,
+    };
 
     await request
       .agent(app.getHttpServer())
@@ -324,47 +235,14 @@ describe('Posts module', () => {
       .expect(200);
 
     const dataAfterUpdate = classToPlain(commentsService.getAll());
-    expect(dataAfterUpdate).resolves.toEqual([
-      {
-        id: expect.any(String),
-        content: commentDto.content,
-        user: {
-          id: userEntity.id,
-          first_name: userEntity.first_name,
-          last_name: userEntity.last_name,
-          mobile: userEntity.mobile,
-          email: userEntity.email,
-          register_at: expect.any(Date),
-          last_login: userEntity.last_login,
-          profile_desc: userEntity.profile_desc,
-          is_banned: userEntity.is_banned,
-        },
-        post: {
-          id: postEntity.id,
-          title: postEntity.title,
-          content: postEntity.content,
-          created_at: expect.any(Date),
-          updated_at: postEntity.updated_at,
-        },
-        created_at: expect.any(Date),
-        updated_at: null,
-      },
-    ]);
+    expect(dataAfterUpdate).resolves.toEqual([expectedObj]);
   });
 
   it('DELETE /comments/comment/:id', async () => {
     const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(
-      userEntity.id,
-    );
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [
-      categoryEntity.id,
-    ]);
-
-    const commentEntity = await testEntities.createTestCommentEntity(
-      userEntity.id,
-      postEntity.id,
-    );
+    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const commentEntity = await testEntities.createTestCommentEntity(userEntity.id, postEntity.id);
 
     await request
       .agent(app.getHttpServer())
@@ -373,7 +251,6 @@ describe('Posts module', () => {
       .expect(200);
 
     const dataAfterUpdate = classToPlain(commentsService.getAll());
-
     await expect(dataAfterUpdate).resolves.toEqual([]);
   });
 });

@@ -33,9 +33,7 @@ export class TestEntities {
     });
   }
 
-  public async createTestCategoryEntity(
-    user_id: string,
-  ): Promise<CategoriesEntity> {
+  public async createTestCategoryEntity(user_id: string): Promise<CategoriesEntity> {
     return await this.categoriesService.create({
       user_id: user_id,
       title: 'title_test',
@@ -56,10 +54,7 @@ export class TestEntities {
     });
   }
 
-  public async createTestCommentEntity(
-    user_id: string,
-    post_id: string,
-  ): Promise<CommentsEntity> {
+  public async createTestCommentEntity(user_id: string, post_id: string): Promise<CommentsEntity> {
     return await this.commentsService.create({
       user_id: user_id,
       post_id: post_id,
@@ -70,7 +65,6 @@ export class TestEntities {
   public async createTestImageDto(): Promise<CreateImageDto> {
     const read = promisify(readFile);
     const pathToTestFile = `${__dirname}/../test_image.png`;
-
     const image_data = await read(pathToTestFile, { encoding: 'base64' });
     return {
       filename: basename(pathToTestFile),

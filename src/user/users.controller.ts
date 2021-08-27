@@ -11,11 +11,7 @@ import {
   ClassSerializerInterceptor,
 } from '@nestjs/common';
 
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  UpdateUserPasswordDto,
-} from './dto/users.dto';
+import { CreateUserDto, UpdateUserDto, UpdateUserPasswordDto } from './dto/users.dto';
 import { UsersEntity } from './users.entity';
 import { UsersService } from './users.service';
 
@@ -39,10 +35,7 @@ export class UsersController {
   }
 
   @Patch('user/:id')
-  async updateUser(
-    @Param('id') id: string,
-    @Body() data: UpdateUserDto,
-  ): Promise<void> {
+  async updateUser(@Param('id') id: string, @Body() data: UpdateUserDto): Promise<void> {
     const user = await this.usersService.getById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -51,10 +44,7 @@ export class UsersController {
   }
 
   @Patch('pass/user/:id')
-  async updateUserPassword(
-    @Param('id') id: string,
-    @Body() data: UpdateUserPasswordDto,
-  ): Promise<void> {
+  async updateUserPassword(@Param('id') id: string, @Body() data: UpdateUserPasswordDto): Promise<void> {
     const user = await this.usersService.getById(id);
     if (!user) {
       throw new NotFoundException('User not found');

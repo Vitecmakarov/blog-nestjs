@@ -1,11 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  BeforeInsert,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, BeforeInsert, OneToMany, OneToOne } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { hash } from 'bcrypt';
 
@@ -15,7 +8,7 @@ import { CommentsEntity } from '../comment/comments.entity';
 import { ImagesEntity } from '../image/images.entity';
 
 @Entity('users')
-export class UsersEntity {
+export class UsersEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -66,19 +59,5 @@ export class UsersEntity {
   @BeforeInsert()
   async hashPassword() {
     this.password = await hash(this.password, 10);
-  }
-
-  constructor(
-    first_name: string,
-    last_name: string,
-    mobile: string,
-    email: string,
-    password: string,
-  ) {
-    this.first_name = first_name;
-    this.last_name = last_name;
-    this.mobile = mobile;
-    this.email = email;
-    this.password = password;
   }
 }

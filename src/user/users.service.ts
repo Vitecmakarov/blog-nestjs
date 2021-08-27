@@ -25,12 +25,7 @@ export class UsersService {
 
   async getById(id: string): Promise<UsersEntity> {
     return await this.usersRepository.findOne(id, {
-      relations: [
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'avatar',
-      ],
+      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
     });
   }
 
@@ -89,12 +84,7 @@ export class UsersService {
   // Only for tests
   async getAll(): Promise<UsersEntity[]> {
     return await this.usersRepository.find({
-      relations: [
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'avatar',
-      ],
+      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
     });
   }
 }

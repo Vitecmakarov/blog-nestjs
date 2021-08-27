@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
 
 import { CreateCategoriesDto, UpdateCategoriesDto } from './dto/categories.dto';
 import { CategoriesEntity } from './categories.entity';
@@ -32,24 +23,17 @@ export class CategoriesController {
   }
 
   @Get('user/:id')
-  async getCategoriesByUserId(
-    @Param('id') id: string,
-  ): Promise<CategoriesEntity[]> {
+  async getCategoriesByUserId(@Param('id') id: string): Promise<CategoriesEntity[]> {
     return await this.categoriesService.getAllByUserId(id);
   }
 
   @Get('title/:title')
-  async getCategoriesUserIdAndTitle(
-    @Param('title') title: string,
-  ): Promise<CategoriesEntity[]> {
+  async getCategoriesByTitle(@Param('title') title: string): Promise<CategoriesEntity[]> {
     return await this.categoriesService.getAllByTitle(title);
   }
 
   @Patch('category/:id')
-  async updateCategory(
-    @Param('id') id: string,
-    @Body() data: UpdateCategoriesDto,
-  ): Promise<void> {
+  async updateCategory(@Param('id') id: string, @Body() data: UpdateCategoriesDto): Promise<void> {
     const category = await this.categoriesService.getById(id);
     if (!category) {
       throw new NotFoundException('Category not found');

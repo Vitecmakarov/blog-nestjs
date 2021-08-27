@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
 
 import { CreatePostCommentDto, UpdatePostCommentDto } from './dto/comments.dto';
 import { CommentsEntity } from './comments.entity';
@@ -32,24 +23,17 @@ export class CommentsController {
   }
 
   @Get('user/:id')
-  async getCommentsByUserId(
-    @Param('id') id: string,
-  ): Promise<CommentsEntity[]> {
+  async getCommentsByUserId(@Param('id') id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsService.getAllByUserId(id);
   }
 
   @Get('post/:id')
-  async getAllCommentsByPostId(
-    @Param('id') id: string,
-  ): Promise<CommentsEntity[]> {
+  async getAllCommentsByPostId(@Param('id') id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsService.getAllByPostId(id);
   }
 
   @Patch('comment/:id')
-  async updateComment(
-    @Param('id') id: string,
-    @Body() data: UpdatePostCommentDto,
-  ): Promise<void> {
+  async updateComment(@Param('id') id: string, @Body() data: UpdatePostCommentDto): Promise<void> {
     const comment = await this.postCommentsService.getById(id);
     if (!comment) {
       throw new NotFoundException('Comment not found');

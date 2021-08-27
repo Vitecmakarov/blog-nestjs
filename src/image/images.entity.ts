@@ -1,16 +1,10 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
 
 import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
 
 @Entity('images')
-export class ImagesEntity {
+export class ImagesEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -41,10 +35,4 @@ export class ImagesEntity {
     default: () => 'CURRENT_TIMESTAMP',
   })
   upload_timestamp: string;
-
-  constructor(path: string, size: number, extension: string) {
-    this.path = path;
-    this.size = size;
-    this.extension = extension;
-  }
 }

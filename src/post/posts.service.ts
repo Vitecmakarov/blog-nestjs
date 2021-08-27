@@ -42,7 +42,6 @@ export class PostsService {
     }
 
     await this.postsRepository.save(post);
-
     return post;
   }
 
@@ -58,12 +57,10 @@ export class PostsService {
     });
   }
 
-  // async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
-  //   return await this.postsRepository.find({
-  //     where: { categories: { id: categoryId } },
-  //     relations: ['user', 'categories', 'image', 'comments'],
-  //   });
-  // } // TODO: Solve the many to many searching problem
+  async getAllByCategoryId(categoryId: string): Promise<PostsEntity[]> {
+    const category = await this.categoriesService.getById(categoryId);
+    return await category.getPosts();
+  }
 
   async getAllByUserId(userId: string): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
@@ -83,9 +80,7 @@ export class PostsService {
         category_actions.map(async (action) => {
           switch (action.type) {
             case CategoryAction.ADD:
-              const category = await this.categoriesService.getById(
-                action.category_id,
-              );
+              const category = await this.categoriesService.getById(action.category_id);
               post.categories.push(category);
               break;
             case CategoryAction.DELETE:

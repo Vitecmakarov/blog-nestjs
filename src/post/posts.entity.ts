@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Entity,
   Column,
   PrimaryGeneratedColumn,
@@ -16,7 +17,7 @@ import { ImagesEntity } from '../image/images.entity';
 import { UsersEntity } from '../user/users.entity';
 
 @Entity('posts')
-export class PostsEntity {
+export class PostsEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -63,9 +64,4 @@ export class PostsEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   updated_at: string;
-
-  constructor(title: string, content: string) {
-    this.title = title;
-    this.content = content;
-  }
 }
