@@ -29,24 +29,32 @@ import { CategoriesService } from '../../src/category/categories.service';
 import { PostsService } from '../../src/post/posts.service';
 import { CommentsService } from '../../src/comment/comments.service';
 
-import { TestEntities } from './test_entities/test.entites';
+import { UserTestEntity } from './test_entities/user.test.entity';
+import { CategoryTestEntity } from './test_entities/category.test.entity';
+import { PostTestEntity } from './test_entities/post.test.entity';
+import { CommentTestEntity } from './test_entities/comment.test.entity';
+import { ImageTestDto } from './test_entities/image.test.dto';
 
 config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
 describe('Posts module', () => {
   let app: INestApplication;
 
-  let testEntities: TestEntities;
+  let usersEntityRepository: Repository<UsersEntity>;
+  let categoriesEntityRepository: Repository<CategoriesEntity>;
+  let postsEntityRepository: Repository<PostsEntity>;
+  let commentsEntityRepository: Repository<CommentsEntity>;
 
   let usersService: UsersService;
   let categoriesService: CategoriesService;
   let postsService: PostsService;
   let commentsService: CommentsService;
 
-  let usersEntityRepository: Repository<UsersEntity>;
-  let categoriesEntityRepository: Repository<CategoriesEntity>;
-  let postsEntityRepository: Repository<PostsEntity>;
-  let commentsEntityRepository: Repository<CommentsEntity>;
+  let userTestEntity: UserTestEntity;
+  let categoryTestEntity: CategoryTestEntity;
+  let postTestEntity: PostTestEntity;
+  let commentTestEntity: CommentTestEntity;
+  let imageTestDto: ImageTestDto;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -70,17 +78,21 @@ describe('Posts module', () => {
 
     app = module.createNestApplication();
 
-    usersService = module.get(UsersService);
-    categoriesService = module.get(CategoriesService);
-    postsService = module.get(PostsService);
-    commentsService = module.get(CommentsService);
-
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
     categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
     commentsEntityRepository = module.get(getRepositoryToken(CommentsEntity));
 
-    testEntities = new TestEntities(usersService, categoriesService, postsService, commentsService);
+    usersService = module.get(UsersService);
+    categoriesService = module.get(CategoriesService);
+    postsService = module.get(PostsService);
+    commentsService = module.get(CommentsService);
+
+    userTestEntity = new UserTestEntity(usersService);
+    categoryTestEntity = new CategoryTestEntity(categoriesService);
+    postTestEntity = new PostTestEntity(postsService);
+    commentTestEntity = new CommentTestEntity(commentsService);
+    imageTestDto = new ImageTestDto();
 
     await app.init();
   }, 15000);
@@ -103,10 +115,10 @@ describe('Posts module', () => {
     const dataBeforeInsert = classToPlain(postsService.getAll());
     await expect(dataBeforeInsert).resolves.toEqual([]);
 
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
 
-    const imageDto = await testEntities.createTestImageDto();
+    const imageDto = await imageTestDto.create();
     const postDto = new CreatePostDto(userEntity.id, [categoryEntity.id], 'title_test', 'content_test', imageDto);
 
     const expectedObj = {
@@ -154,12 +166,12 @@ describe('Posts module', () => {
   });
 
   it('GET (/posts/all, /posts/post/:id, /posts/user/:id, /posts/category/:id)', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
-    const commentEntity = await testEntities.createTestCommentEntity(userEntity.id, postEntity.id);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
+    const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
+    const commentEntity = await commentTestEntity.create(userEntity.id, postEntity.id);
 
-    await testEntities.createTestCategoryEntity(userEntity.id);
+    await categoryTestEntity.create(userEntity.id);
 
     const expectedResponseObj = {
       id: postEntity.id,
@@ -230,14 +242,14 @@ describe('Posts module', () => {
   });
 
   it('PATCH /posts/post/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const firstCategoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    const secondCategoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [firstCategoryEntity.id]);
+    const userEntity = await userTestEntity.create();
+    const firstCategoryEntity = await categoryTestEntity.create(userEntity.id);
+    const secondCategoryEntity = await categoryTestEntity.create(userEntity.id);
+    const postEntity = await postTestEntity.create(userEntity.id, [firstCategoryEntity.id]);
 
     const categoryAction = new UpdateCategoryAction(CategoryAction.ADD, secondCategoryEntity.id);
 
-    const imageDto = await testEntities.createTestImageDto();
+    const imageDto = await imageTestDto.create();
     const postDto = new UpdatePostDto([categoryAction], 'title_test', 'content_test', imageDto);
 
     const expectedObj = {
@@ -280,9 +292,10 @@ describe('Posts module', () => {
   });
 
   it('DELETE /posts/post/:id', async () => {
-    const userEntity = await testEntities.createTestUserEntity();
-    const categoryEntity = await testEntities.createTestCategoryEntity(userEntity.id);
-    const postEntity = await testEntities.createTestPostEntity(userEntity.id, [categoryEntity.id]);
+    const userEntity = await userTestEntity.create();
+    const categoryEntity = await categoryTestEntity.create(userEntity.id);
+    const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
+    await commentTestEntity.create(userEntity.id, postEntity.id);
 
     await request
       .agent(app.getHttpServer())
