@@ -17,19 +17,15 @@ export class UsersService {
     private readonly imageService: ImagesService,
   ) {}
 
-  async create(data: CreateUserDto): Promise<void> {
+  async create(data: CreateUserDto): Promise<UsersEntity> {
     const user = this.usersRepository.create(data);
     await this.usersRepository.save(user);
+    return user;
   }
 
   async getById(id: string): Promise<UsersEntity> {
     return await this.usersRepository.findOne(id, {
-      relations: [
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'avatar',
-      ],
+      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
     });
   }
 
@@ -88,12 +84,7 @@ export class UsersService {
   // Only for tests
   async getAll(): Promise<UsersEntity[]> {
     return await this.usersRepository.find({
-      relations: [
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'avatar',
-      ],
+      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
     });
   }
 }

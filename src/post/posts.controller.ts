@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
 
 import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
 import { PostsEntity } from './posts.entity';
@@ -16,6 +7,16 @@ import { PostsService } from './posts.service';
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
+
+  @Post('create')
+  async createPost(@Body() data: CreatePostDto): Promise<void> {
+    await this.postsService.create(data);
+  }
+
+  @Get('all')
+  async getAllPosts(): Promise<PostsEntity[]> {
+    return await this.postsService.getAll();
+  }
 
   @Get('post/:id')
   async getPostById(@Param('id') id: string): Promise<PostsEntity> {
@@ -36,21 +37,8 @@ export class PostsController {
     return await this.postsService.getAllByUserId(id);
   }
 
-  @Get('all')
-  async getAllPosts(): Promise<PostsEntity[]> {
-    return await this.postsService.getAll();
-  }
-
-  @Post('create')
-  async createPost(@Body() data: CreatePostDto): Promise<void> {
-    await this.postsService.create(data);
-  }
-
   @Patch('post/:id')
-  async updatePost(
-    @Param('id') id: string,
-    @Body() data: UpdatePostDto,
-  ): Promise<void> {
+  async updatePost(@Param('id') id: string, @Body() data: UpdatePostDto): Promise<void> {
     const post = await this.postsService.getById(id);
     if (!post) {
       throw new NotFoundException('Post not found');

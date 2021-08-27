@@ -48,3 +48,15 @@ $ npm run migration-generate
 $ npm run build
 ```
 Then run app in dev or prod mode.
+
+## Testing
+```bash
+# running unit tests
+$ npm run test
+
+# running unit tests with coverage
+$ npm run test:cov
+
+# running end-to-end tests
+$ npm run test:e2e
+```

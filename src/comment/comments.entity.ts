@@ -1,16 +1,10 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 
 import { UsersEntity } from '../user/users.entity';
 import { PostsEntity } from '../post/posts.entity';
 
 @Entity('comments')
-export class CommentsEntity {
+export class CommentsEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -36,10 +30,6 @@ export class CommentsEntity {
   })
   created_at: string;
 
-  @Column({ type: 'timestamp', nullable: true }) // TODO
+  @Column({ type: 'timestamp', nullable: true })
   updated_at: string;
-
-  constructor(content: string) {
-    this.content = content;
-  }
 }

@@ -1,17 +1,23 @@
 import {
-  Entity,
+  BaseEntity,
   Column,
-  PrimaryGeneratedColumn,
+  Entity,
+  getConnection,
+  JoinColumn,
   ManyToMany,
   ManyToOne,
-  JoinColumn,
+  PrimaryGeneratedColumn,
+  Tree,
+  TreeChildren,
+  TreeParent,
 } from 'typeorm';
 
 import { PostsEntity } from '../post/posts.entity';
 import { UsersEntity } from '../user/users.entity';
 
 @Entity('categories')
-export class CategoriesEntity {
+@Tree('materialized-path')
+export class CategoriesEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -24,12 +30,30 @@ export class CategoriesEntity {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: UsersEntity;
 
-  @ManyToMany(() => PostsEntity, (posts) => posts.categories, {
+  @ManyToMany(() => PostsEntity, (post) => post.categories, {
     onDelete: 'CASCADE',
   })
   posts: PostsEntity[];
 
-  constructor(title: string) {
-    this.title = title;
+  @TreeChildren()
+  children: CategoriesEntity[];
+
+  @TreeParent()
+  parent: CategoriesEntity;
+
+  async getPosts(): Promise<PostsEntity[]> {
+    const categories = await getConnection().getTreeRepository(CategoriesEntity).findDescendants(this);
+    categories.push(this);
+
+    const ids = categories.map((cat) => cat.id);
+
+    return await PostsEntity.createQueryBuilder('post')
+      .distinct(true)
+      .innerJoin('post.categories', 'category', 'category.id IN (:...ids)', { ids })
+      .innerJoinAndSelect('post.categories', 'cat')
+      .innerJoinAndSelect('post.user', 'user')
+      .innerJoinAndSelect('post.comments', 'comments')
+      .leftJoinAndSelect('post.image', 'image')
+      .getMany();
   }
 }
