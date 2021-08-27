@@ -182,7 +182,6 @@ describe('Posts module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
-        password: userEntity.password,
         register_at: expect.any(String),
         last_login: userEntity.last_login,
         profile_desc: userEntity.profile_desc,

@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseInterceptors,
+  NotFoundException,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 
 import { CreatePostCommentDto, UpdatePostCommentDto } from './dto/comments.dto';
 import { CommentsEntity } from './comments.entity';
@@ -14,6 +25,7 @@ export class CommentsController {
   }
 
   @Get('comment/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getCommentById(@Param('id') id: string): Promise<CommentsEntity> {
     const comment = await this.postCommentsService.getById(id);
     if (!comment) {
@@ -23,11 +35,13 @@ export class CommentsController {
   }
 
   @Get('user/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getCommentsByUserId(@Param('id') id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsService.getAllByUserId(id);
   }
 
   @Get('post/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getAllCommentsByPostId(@Param('id') id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsService.getAllByPostId(id);
   }

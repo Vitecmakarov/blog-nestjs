@@ -54,7 +54,7 @@ Then run app in dev or prod mode.
 # running unit tests
 $ npm run test
 
-# running unit tests with coverage
+# running unit tests without coverage
 $ npm run test:cov
 
 # running end-to-end tests

@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseInterceptors,
+  NotFoundException,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 
 import { CreateCategoriesDto, UpdateCategoriesDto } from './dto/categories.dto';
 import { CategoriesEntity } from './categories.entity';
@@ -14,6 +25,7 @@ export class CategoriesController {
   }
 
   @Get('category/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getCategoryById(@Param('id') id: string): Promise<CategoriesEntity> {
     const category = await this.categoriesService.getById(id);
     if (!category) {
@@ -23,11 +35,13 @@ export class CategoriesController {
   }
 
   @Get('user/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getCategoriesByUserId(@Param('id') id: string): Promise<CategoriesEntity[]> {
     return await this.categoriesService.getAllByUserId(id);
   }
 
   @Get('title/:title')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getCategoriesByTitle(@Param('title') title: string): Promise<CategoriesEntity[]> {
     return await this.categoriesService.getAllByTitle(title);
   }
