@@ -8,52 +8,22 @@ import { ImagesEntity } from '../../src/image/images.entity';
 import { UsersService } from '../../src/user/users.service';
 import { ImagesService } from '../../src/image/images.service';
 
-const usersArr = [
-  new UsersEntity(
-    'first_name_test',
-    'last_name_test',
-    'mobile_test',
-    'email_test',
-    'password_test',
-  ),
-  new UsersEntity(
-    'first_name_test2',
-    'last_name_test2',
-    'mobile_test2',
-    'email_test2',
-    'password_test2',
-  ),
-  new UsersEntity(
-    'first_name_test3',
-    'last_name_test3',
-    'mobile_test3',
-    'email_test3',
-    'password_test3',
-  ),
-];
+const usersArr = [new UsersEntity(), new UsersEntity(), new UsersEntity()];
 
-const oneUser = new UsersEntity(
-  'first_name_test',
-  'last_name_test',
-  'mobile_test',
-  'email_test',
-  'password_test',
-);
+const oneUser = new UsersEntity();
 
 describe('UserService', () => {
   let usersService: UsersService;
   let usersRepository: MockType<Repository<UsersEntity>>;
 
-  const repositoryMockFactory: () => MockType<Repository<any>> = jest.fn(
-    () => ({
-      find: jest.fn().mockResolvedValue(usersArr),
-      findOne: jest.fn().mockResolvedValue(oneUser),
-      create: jest.fn().mockResolvedValue(oneUser),
-      save: jest.fn(),
-      update: jest.fn().mockResolvedValue(true),
-      delete: jest.fn().mockResolvedValue(true),
-    }),
-  );
+  const repositoryMockFactory: () => MockType<Repository<any>> = jest.fn(() => ({
+    find: jest.fn().mockResolvedValue(usersArr),
+    findOne: jest.fn().mockResolvedValue(oneUser),
+    create: jest.fn().mockResolvedValue(oneUser),
+    save: jest.fn(),
+    update: jest.fn().mockResolvedValue(true),
+    delete: jest.fn().mockResolvedValue(true),
+  }));
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -88,7 +58,7 @@ describe('UserService', () => {
         email: 'email_test',
         password: 'password_test',
       }),
-    ).resolves.toEqual(undefined);
+    ).resolves.toEqual({});
     expect(repoSpy).toBeCalledWith({
       first_name: 'first_name_test',
       last_name: 'last_name_test',
@@ -102,12 +72,7 @@ describe('UserService', () => {
     const repoSpy = jest.spyOn(usersRepository, 'find');
     await expect(usersService.getAll()).resolves.toEqual(usersArr);
     expect(repoSpy).toBeCalledWith({
-      relations: [
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'avatar',
-      ],
+      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
     });
   });
 
@@ -115,12 +80,7 @@ describe('UserService', () => {
     const repoSpy = jest.spyOn(usersRepository, 'findOne');
     await expect(usersService.getById('a uuid')).resolves.toEqual(oneUser);
     expect(repoSpy).toBeCalledWith('a uuid', {
-      relations: [
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'avatar',
-      ],
+      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
     });
   });
 
@@ -139,10 +99,7 @@ describe('UserService', () => {
 
   it('updatePassword', async () => {
     // const repoSpy = jest.spyOn(usersRepository, 'update');
-    const updatedUser = await usersService.updatePassword(
-      'a uuid',
-      'new_password',
-    );
+    const updatedUser = await usersService.updatePassword('a uuid', 'new_password');
     expect(updatedUser).toEqual(undefined);
     // expect(repoSpy).toBeCalledWith(
     //   { id: 'a uuid' },
@@ -154,10 +111,7 @@ describe('UserService', () => {
 
   it('updateLastLogin', async () => {
     const repoSpy = jest.spyOn(usersRepository, 'update');
-    const updatedUser = await usersService.updateLastLogin(
-      'a uuid',
-      'login_date',
-    );
+    const updatedUser = await usersService.updateLastLogin('a uuid', 'login_date');
     expect(updatedUser).toEqual(undefined);
     expect(repoSpy).toBeCalledWith(
       { id: 'a uuid' },
