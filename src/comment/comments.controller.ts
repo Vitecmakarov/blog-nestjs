@@ -10,6 +10,7 @@ import {
   NotFoundException,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { Public } from '../decorators/jwt.decorator';
 
 import { CreatePostCommentDto, UpdatePostCommentDto } from './dto/comments.dto';
 import { CommentsEntity } from './comments.entity';
@@ -24,25 +25,10 @@ export class CommentsController {
     await this.postCommentsService.create(data);
   }
 
-  @Get('comment/:id')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async getCommentById(@Param('id') id: string): Promise<CommentsEntity> {
-    const comment = await this.postCommentsService.getById(id);
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-    return comment;
-  }
-
-  @Get('user/:id')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async getCommentsByUserId(@Param('id') id: string): Promise<CommentsEntity[]> {
-    return await this.postCommentsService.getAllByUserId(id);
-  }
-
+  @Public()
   @Get('post/:id')
   @UseInterceptors(ClassSerializerInterceptor)
-  async getAllCommentsByPostId(@Param('id') id: string): Promise<CommentsEntity[]> {
+  async getCommentsByPostId(@Param('id') id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsService.getAllByPostId(id);
   }
 

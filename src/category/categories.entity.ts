@@ -42,7 +42,9 @@ export class CategoriesEntity extends BaseEntity {
   parent: CategoriesEntity;
 
   async getPosts(): Promise<PostsEntity[]> {
-    const categories = await getConnection().getTreeRepository(CategoriesEntity).findDescendants(this);
+    const categories = await getConnection()
+      .getTreeRepository(CategoriesEntity)
+      .findDescendants(this);
     categories.push(this);
 
     const ids = categories.map((cat) => cat.id);

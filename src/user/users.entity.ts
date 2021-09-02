@@ -18,10 +18,10 @@ export class UsersEntity extends BaseEntity {
   @Column({ type: 'varchar', nullable: false, length: 50 })
   last_name: string;
 
-  @Column({ type: 'varchar', nullable: false, length: 15 })
+  @Column({ type: 'varchar', nullable: false, length: 15, unique: true })
   mobile: string;
 
-  @Column({ type: 'varchar', nullable: false, length: 100 })
+  @Column({ type: 'varchar', nullable: false, length: 100, unique: true })
   email: string;
 
   @Exclude({ toPlainOnly: true })
@@ -47,13 +47,13 @@ export class UsersEntity extends BaseEntity {
   })
   register_at: string;
 
-  @Column({ type: 'timestamp', nullable: true }) //TODO
+  @Column({ type: 'timestamp', nullable: true })
   last_login: string;
 
   @Column({ type: 'varchar', nullable: true, length: 100 })
   profile_desc: string;
 
-  @Column({ type: 'boolean', nullable: false, default: false }) //TODO
+  @Column({ type: 'boolean', nullable: false, default: false })
   is_banned: boolean;
 
   @BeforeInsert()

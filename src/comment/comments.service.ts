@@ -44,13 +44,6 @@ export class CommentsService {
     });
   }
 
-  async getAllByUserId(id: string): Promise<CommentsEntity[]> {
-    return await this.postCommentsRepository.find({
-      where: { user: { id: id } },
-      relations: ['user', 'post'],
-    });
-  }
-
   async getAllByPostId(id: string): Promise<CommentsEntity[]> {
     return await this.postCommentsRepository.find({
       where: { post: { id: id } },
@@ -60,7 +53,7 @@ export class CommentsService {
 
   async update(id: string, dataDto: UpdatePostCommentDto): Promise<void> {
     const comment = await this.postCommentsRepository.findOne(id);
-    comment.updated_at = String(Date.now());
+    comment.updated_at = new Date(Date.now()).toString();
     await this.postCommentsRepository.save({ ...comment, ...dataDto });
   }
 

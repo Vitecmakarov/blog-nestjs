@@ -110,7 +110,20 @@ describe('Categories module', () => {
       avatar: imageDto,
     });
 
+    const image = await imagesEntityRepository.findOne({
+      where: { user: { id: userEntity.id } },
+      relations: ['user'],
+    });
+
     let response = await request
+      .agent(app.getHttpServer())
+      .get(`/images/image/${image.id}`)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /octet-stream/)
+      .expect(200);
+    expect(response.body).toEqual(expect.any(Buffer));
+
+    response = await request
       .agent(app.getHttpServer())
       .get(`/images/user/${userEntity.id}`)
       .set('Accept', 'application/json')

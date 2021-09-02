@@ -2,8 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
-import { CategoryAction } from '../category/dto/categories.dto';
+import { CreatePostDto, UpdatePostDto, PostCategoryAction } from './dto/posts.dto';
 
 import { PostsEntity } from './posts.entity';
 
@@ -48,6 +47,9 @@ export class PostsService {
   async getAll(): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
       relations: ['user', 'categories', 'image', 'comments'],
+      order: {
+        created_at: 'ASC',
+      },
     });
   }
 
@@ -62,13 +64,6 @@ export class PostsService {
     return await category.getPosts();
   }
 
-  async getAllByUserId(userId: string): Promise<PostsEntity[]> {
-    return await this.postsRepository.find({
-      where: { user: { id: userId } },
-      relations: ['user', 'categories', 'image', 'comments'],
-    });
-  }
-
   async update(id: string, data: UpdatePostDto): Promise<PostsEntity> {
     const { category_actions, image, ...post_data } = data;
     const post = await this.postsRepository.findOne(id, {
@@ -79,11 +74,11 @@ export class PostsService {
       await Promise.all(
         category_actions.map(async (action) => {
           switch (action.type) {
-            case CategoryAction.ADD:
+            case PostCategoryAction.ADD:
               const category = await this.categoriesService.getById(action.category_id);
               post.categories.push(category);
               break;
-            case CategoryAction.DELETE:
+            case PostCategoryAction.DELETE:
               post.categories = post.categories.filter((category) => {
                 return category.id !== action.category_id;
               });
@@ -101,7 +96,7 @@ export class PostsService {
       }
       post.image = await this.imagesService.create(image);
     }
-    post.updated_at = String(Date.now());
+    post.updated_at = new Date(Date.now()).toString();
 
     return await this.postsRepository.save({ ...post, ...post_data });
   }

@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsOptional } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
 
 export class CreatePostCommentDto {
   @IsString()
@@ -20,7 +20,6 @@ export class CreatePostCommentDto {
 }
 
 export class UpdatePostCommentDto {
-  @IsOptional()
   @IsString()
   content: string;
 

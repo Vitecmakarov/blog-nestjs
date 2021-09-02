@@ -17,7 +17,7 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
-import { CreateUserDto, UpdateUserDto, UpdateUserPasswordDto } from '../../src/user/dto/users.dto';
+import { UpdateUserDto, UpdateUserPasswordDto } from '../../src/user/dto/users.dto';
 
 import { UsersEntity } from '../../src/user/users.entity';
 import { CategoriesEntity } from '../../src/category/categories.entity';
@@ -111,59 +111,11 @@ describe('Users module', () => {
     await deleteTestImagesDir(process.env.PWD + process.env.IMAGES_DIR);
   });
 
-  it('POST /users/register', async () => {
-    const dataBeforeInsert = classToPlain(usersService.getAll());
-    await expect(dataBeforeInsert).resolves.toEqual([]);
-
-    const userDto = new CreateUserDto(
-      'first_name_test',
-      'last_name_test',
-      'mobile_test',
-      'email_test',
-      'password_test',
-    );
-
-    const expectedObj = {
-      id: expect.any(String),
-      first_name: userDto.first_name,
-      last_name: userDto.last_name,
-      mobile: userDto.mobile,
-      email: userDto.email,
-      created_posts: [],
-      created_categories: [],
-      created_comments: [],
-      avatar: null,
-      register_at: expect.any(Date),
-      last_login: null,
-      profile_desc: null,
-      is_banned: false,
-    };
-
-    await request
-      .agent(app.getHttpServer())
-      .post('/users/register')
-      .set('Accept', 'application/json')
-      .send(userDto)
-      .expect(201);
-
-    const promiseUser = usersService.getAll();
-
-    const dataAfterInsert = classToPlain(promiseUser);
-    await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
-
-    const [user] = await promiseUser;
-
-    const isPasswordSavedCorrectly = await bcrypt.compare(userDto.password, user.password);
-    if (!isPasswordSavedCorrectly) {
-      throw new Error('Password is not saved correctly');
-    }
-  });
-
-  it('GET /users/user/:id', async () => {
+  it('GET /user/:id', async () => {
     const userEntity = await userTestEntity.create();
     const categoryEntity = await categoryTestEntity.create(userEntity.id);
     const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
-    const commentEntity = await commentTestEntity.create(userEntity.id, postEntity.id);
+    await commentTestEntity.create(userEntity.id, postEntity.id);
 
     const expectedResponseObj = {
       id: userEntity.id,
@@ -171,29 +123,6 @@ describe('Users module', () => {
       last_name: userEntity.last_name,
       mobile: userEntity.mobile,
       email: userEntity.email,
-      created_posts: [
-        {
-          id: postEntity.id,
-          title: postEntity.title,
-          content: postEntity.content,
-          created_at: expect.any(String),
-          updated_at: postEntity.updated_at,
-        },
-      ],
-      created_categories: [
-        {
-          id: categoryEntity.id,
-          title: categoryEntity.title,
-        },
-      ],
-      created_comments: [
-        {
-          id: commentEntity.id,
-          content: commentEntity.content,
-          created_at: expect.any(String),
-          updated_at: commentEntity.updated_at,
-        },
-      ],
       avatar: null,
       register_at: expect.any(String),
       last_login: userEntity.last_login,
@@ -203,7 +132,7 @@ describe('Users module', () => {
 
     const { body } = await request
       .agent(app.getHttpServer())
-      .get(`/users/user/${userEntity.id}`)
+      .get(`/user/${userEntity.id}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
@@ -211,7 +140,7 @@ describe('Users module', () => {
     expect(body).toEqual(expectedResponseObj);
   });
 
-  it('PATCH /users/user/:id', async () => {
+  it('PATCH /user/:id', async () => {
     const userEntity = await userTestEntity.create();
     const imageDto = await imageTestDto.create();
 
@@ -246,7 +175,7 @@ describe('Users module', () => {
 
     await request
       .agent(app.getHttpServer())
-      .patch(`/users/user/${userEntity.id}`)
+      .patch(`/user/${userEntity.id}`)
       .set('Accept', 'application/json')
       .send(userDto)
       .expect(200);
@@ -255,13 +184,13 @@ describe('Users module', () => {
     await expect(dataAfterUpdate).resolves.toEqual([expectedObj]);
   });
 
-  it('PATCH /users/pass/user/:id', async () => {
+  it('PATCH /user/:id/pass/change', async () => {
     let user = await userTestEntity.create();
     const userDto = new UpdateUserPasswordDto('new_password');
 
     await request
       .agent(app.getHttpServer())
-      .patch(`/users/pass/user/${user.id}`)
+      .patch(`/user/${user.id}/pass/change`)
       .set('Accept', 'application/json')
       .send(userDto)
       .expect(200);
@@ -274,7 +203,7 @@ describe('Users module', () => {
     }
   });
 
-  it('DELETE /users/user/:id', async () => {
+  it('DELETE /user/:id', async () => {
     const user = await userTestEntity.create();
     const category = await categoryTestEntity.create(user.id);
     const post = await postTestEntity.create(user.id, [category.id]);
@@ -282,7 +211,7 @@ describe('Users module', () => {
 
     await request
       .agent(app.getHttpServer())
-      .delete(`/users/user/${user.id}`)
+      .delete(`/user/${user.id}`)
       .set('Accept', 'application/json')
       .expect(200);
 

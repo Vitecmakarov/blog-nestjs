@@ -146,7 +146,7 @@ describe('Posts module', () => {
     await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
   });
 
-  it('GET (/comments/comment/:id, /comments/user/:id, /comments/post/:id)', async () => {
+  it('GET /comments/post/:id', async () => {
     const userEntity = await userTestEntity.create();
     const categoryEntity = await categoryTestEntity.create(userEntity.id);
     const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
@@ -177,23 +177,7 @@ describe('Posts module', () => {
       updated_at: null,
     };
 
-    let response = await request
-      .agent(app.getHttpServer())
-      .get(`/comments/comment/${commentEntity.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-    expect(response.body).toEqual(expectedResponseObj);
-
-    response = await request
-      .agent(app.getHttpServer())
-      .get(`/comments/user/${userEntity.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-    expect(response.body).toEqual([expectedResponseObj]);
-
-    response = await request
+    const response = await request
       .agent(app.getHttpServer())
       .get(`/comments/post/${postEntity.id}`)
       .set('Accept', 'application/json')
@@ -232,7 +216,7 @@ describe('Posts module', () => {
         updated_at: postEntity.updated_at,
       },
       created_at: expect.any(Date),
-      updated_at: null,
+      updated_at: expect.any(Date),
     };
 
     await request

@@ -1,4 +1,4 @@
-1) Add authorization and authentication
-2) Add likes and dislikes comments and posts
-3) Add logic to ban user
-4) Add nested comments
+1) Add likes and dislikes comments and posts
+2) Add logic to ban user
+3) Add nested comments
+5) Add refresh token

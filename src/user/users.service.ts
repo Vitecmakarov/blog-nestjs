@@ -25,13 +25,19 @@ export class UsersService {
 
   async getById(id: string): Promise<UsersEntity> {
     return await this.usersRepository.findOne(id, {
-      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
+      relations: ['avatar'],
+    });
+  }
+
+  async getByPhoneNumber(phone: string): Promise<UsersEntity> {
+    return await this.usersRepository.findOne({
+      where: { mobile: phone },
+      relations: ['avatar'],
     });
   }
 
   async update(id: string, dataDto: UpdateUserDto): Promise<void> {
     const { avatar, ...dataToUpdate } = dataDto;
-
     const user = await this.usersRepository.findOne(id, {
       relations: ['avatar'],
     });
@@ -46,6 +52,7 @@ export class UsersService {
       }
       user.avatar = await this.imageService.create(avatar);
     }
+
     await this.usersRepository.save({ ...user, ...dataToUpdate });
   }
 

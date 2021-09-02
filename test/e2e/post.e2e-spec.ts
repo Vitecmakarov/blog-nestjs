@@ -16,8 +16,12 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
-import { CreatePostDto, UpdatePostDto } from '../../src/post/dto/posts.dto';
-import { CategoryAction, UpdateCategoryAction } from '../../src/category/dto/categories.dto';
+import {
+  CreatePostDto,
+  UpdatePostDto,
+  UpdatePostCategoryAction,
+  PostCategoryAction,
+} from '../../src/post/dto/posts.dto';
 
 import { UsersEntity } from '../../src/user/users.entity';
 import { CategoriesEntity } from '../../src/category/categories.entity';
@@ -119,7 +123,13 @@ describe('Posts module', () => {
     const categoryEntity = await categoryTestEntity.create(userEntity.id);
 
     const imageDto = await imageTestDto.create();
-    const postDto = new CreatePostDto(userEntity.id, [categoryEntity.id], 'title_test', 'content_test', imageDto);
+    const postDto = new CreatePostDto(
+      userEntity.id,
+      [categoryEntity.id],
+      'title_test',
+      'content_test',
+      imageDto,
+    );
 
     const expectedObj = {
       id: expect.any(String),
@@ -165,7 +175,7 @@ describe('Posts module', () => {
     await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
   });
 
-  it('GET (/posts/all, /posts/post/:id, /posts/user/:id, /posts/category/:id)', async () => {
+  it('GET (/posts/all, /posts/post/:id, /posts/category/:id)', async () => {
     const userEntity = await userTestEntity.create();
     const categoryEntity = await categoryTestEntity.create(userEntity.id);
     const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
@@ -209,14 +219,6 @@ describe('Posts module', () => {
 
     let response = await request
       .agent(app.getHttpServer())
-      .get(`/posts/post/${postEntity.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200);
-    expect(response.body).toEqual(expectedResponseObj);
-
-    response = await request
-      .agent(app.getHttpServer())
       .get('/posts/all')
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
@@ -225,11 +227,11 @@ describe('Posts module', () => {
 
     response = await request
       .agent(app.getHttpServer())
-      .get(`/posts/user/${userEntity.id}`)
+      .get(`/posts/post/${postEntity.id}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200);
-    expect(response.body).toEqual([expectedResponseObj]);
+    expect(response.body).toEqual(expectedResponseObj);
 
     response = await request
       .agent(app.getHttpServer())
@@ -246,7 +248,10 @@ describe('Posts module', () => {
     const secondCategoryEntity = await categoryTestEntity.create(userEntity.id);
     const postEntity = await postTestEntity.create(userEntity.id, [firstCategoryEntity.id]);
 
-    const categoryAction = new UpdateCategoryAction(CategoryAction.ADD, secondCategoryEntity.id);
+    const categoryAction = new UpdatePostCategoryAction(
+      PostCategoryAction.ADD,
+      secondCategoryEntity.id,
+    );
 
     const imageDto = await imageTestDto.create();
     const postDto = new UpdatePostDto([categoryAction], 'title_test', 'content_test', imageDto);
@@ -265,7 +270,16 @@ describe('Posts module', () => {
         profile_desc: userEntity.profile_desc,
         is_banned: userEntity.is_banned,
       },
-      categories: expect.any(Array), // TODO
+      categories: [
+        {
+          id: firstCategoryEntity.id,
+          title: firstCategoryEntity.title,
+        },
+        {
+          id: secondCategoryEntity.id,
+          title: secondCategoryEntity.title,
+        },
+      ],
       image: {
         id: expect.any(String),
         path: expect.any(String),
@@ -276,7 +290,7 @@ describe('Posts module', () => {
       comments: [],
       content: postDto.content,
       created_at: expect.any(Date),
-      updated_at: postEntity.updated_at,
+      updated_at: expect.any(Date),
     };
 
     await request
@@ -304,5 +318,8 @@ describe('Posts module', () => {
 
     const dataAfterUpdate = classToPlain(postsService.getAll());
     await expect(dataAfterUpdate).resolves.toEqual([]);
+
+    const [categoriesAfterPostDelete] = await categoriesService.getAll();
+    await expect(categoriesAfterPostDelete).toEqual(expect.any(CategoriesEntity));
   });
 });

@@ -1,7 +1,6 @@
 import { ArrayMinSize, IsArray, IsString, IsUUID, MaxLength, IsOptional } from 'class-validator';
 
 import { CreateImageDto } from '../../image/dto/images.dto';
-import { UpdateCategoryAction } from '../../category/dto/categories.dto';
 
 export class CreatePostDto {
   @IsString()
@@ -35,7 +34,7 @@ export class UpdatePostDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
-  category_actions?: UpdateCategoryAction[];
+  category_actions?: UpdatePostCategoryAction[];
 
   @IsOptional()
   @IsString()
@@ -49,10 +48,28 @@ export class UpdatePostDto {
   @IsOptional()
   image?: CreateImageDto;
 
-  constructor(category_actions?: UpdateCategoryAction[], title?: string, content?: string, image?: CreateImageDto) {
+  constructor(category_actions?: UpdatePostCategoryAction[], title?: string, content?: string, image?: CreateImageDto) {
     this.category_actions = category_actions;
     this.title = title;
     this.content = content;
     this.image = image;
   }
+}
+
+export class UpdatePostCategoryAction {
+  type: PostCategoryAction;
+
+  @IsString()
+  @IsUUID(4)
+  category_id: string;
+
+  constructor(type: number, category_id: string) {
+    this.type = type;
+    this.category_id = category_id;
+  }
+}
+
+export enum PostCategoryAction {
+  ADD,
+  DELETE,
 }

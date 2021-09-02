@@ -24,21 +24,3 @@ export class UpdateCategoriesDto {
     this.title = title;
   }
 }
-
-export class UpdateCategoryAction {
-  type: CategoryAction;
-
-  @IsString()
-  @IsUUID(4)
-  category_id: string;
-
-  constructor(type: number, category_id: string) {
-    this.type = type;
-    this.category_id = category_id;
-  }
-}
-
-export enum CategoryAction {
-  ADD,
-  DELETE,
-}

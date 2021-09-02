@@ -10,6 +10,7 @@ import {
   NotFoundException,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { Public } from '../decorators/jwt.decorator';
 
 import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
 import { PostsEntity } from './posts.entity';
@@ -24,12 +25,14 @@ export class PostsController {
     await this.postsService.create(data);
   }
 
+  @Public()
   @Get('all')
   @UseInterceptors(ClassSerializerInterceptor)
   async getAllPosts(): Promise<PostsEntity[]> {
     return await this.postsService.getAll();
   }
 
+  @Public()
   @Get('post/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getPostById(@Param('id') id: string): Promise<PostsEntity> {
@@ -40,16 +43,11 @@ export class PostsController {
     return post;
   }
 
+  @Public()
   @Get('category/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getPostsByCategoryId(@Param('id') id: string): Promise<PostsEntity[]> {
     return await this.postsService.getAllByCategoryId(id);
-  }
-
-  @Get('user/:id')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async getPostsByUserId(@Param('id') id: string): Promise<PostsEntity[]> {
-    return await this.postsService.getAllByUserId(id);
   }
 
   @Patch('post/:id')

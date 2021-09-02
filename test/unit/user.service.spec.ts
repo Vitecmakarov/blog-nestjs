@@ -80,7 +80,16 @@ describe('UserService', () => {
     const repoSpy = jest.spyOn(usersRepository, 'findOne');
     await expect(usersService.getById('a uuid')).resolves.toEqual(oneUser);
     expect(repoSpy).toBeCalledWith('a uuid', {
-      relations: ['created_posts', 'created_categories', 'created_comments', 'avatar'],
+      relations: ['avatar'],
+    });
+  });
+
+  it('getByPhoneNumber', async () => {
+    const repoSpy = jest.spyOn(usersRepository, 'findOne');
+    await expect(usersService.getByPhoneNumber('phone')).resolves.toEqual(oneUser);
+    expect(repoSpy).toBeCalledWith({
+      where: { mobile: 'phone' },
+      relations: ['avatar'],
     });
   });
 
@@ -98,15 +107,16 @@ describe('UserService', () => {
   });
 
   it('updatePassword', async () => {
-    // const repoSpy = jest.spyOn(usersRepository, 'update');
+    const repoSpy = jest.spyOn(usersRepository, 'update');
     const updatedUser = await usersService.updatePassword('a uuid', 'new_password');
     expect(updatedUser).toEqual(undefined);
-    // expect(repoSpy).toBeCalledWith(
-    //   { id: 'a uuid' },
-    //   {
-    //     password: 'new_password',
-    //   },
-    // );
+    const user = await usersService.getById('a uuid');
+    expect(repoSpy).toBeCalledWith(
+      { id: user.password },
+      {
+        password: 'new_password',
+      },
+    );
   });
 
   it('updateLastLogin', async () => {

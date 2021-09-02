@@ -8,7 +8,7 @@ export class ImagesEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: false, unique: true })
   path: string;
 
   @Column({ type: 'int', nullable: false })

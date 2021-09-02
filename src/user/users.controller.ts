@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Patch,
   Delete,
   Body,
@@ -10,21 +9,17 @@ import {
   NotFoundException,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { Public } from '../decorators/jwt.decorator';
 
-import { CreateUserDto, UpdateUserDto, UpdateUserPasswordDto } from './dto/users.dto';
+import { UpdateUserDto, UpdateUserPasswordDto } from './dto/users.dto';
 import { UsersEntity } from './users.entity';
 import { UsersService } from './users.service';
 
-@Controller('users')
+@Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post('register')
-  async registerUser(@Body() data: CreateUserDto): Promise<void> {
-    await this.usersService.create(data);
-  }
-
-  @Get('user/:id')
+  @Public()
+  @Get(':id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getUserById(@Param('id') id: string): Promise<UsersEntity> {
     const user = await this.usersService.getById(id);
@@ -34,7 +29,7 @@ export class UsersController {
     return user;
   }
 
-  @Patch('user/:id')
+  @Patch(':id')
   async updateUser(@Param('id') id: string, @Body() data: UpdateUserDto): Promise<void> {
     const user = await this.usersService.getById(id);
     if (!user) {
@@ -43,7 +38,7 @@ export class UsersController {
     await this.usersService.update(id, data);
   }
 
-  @Patch('pass/user/:id')
+  @Patch(':id/pass/change')
   async updateUserPassword(@Param('id') id: string, @Body() data: UpdateUserPasswordDto): Promise<void> {
     const user = await this.usersService.getById(id);
     if (!user) {
@@ -52,7 +47,7 @@ export class UsersController {
     await this.usersService.updatePassword(id, data.password);
   }
 
-  @Delete('user/:id')
+  @Delete(':id')
   async deleteUser(@Param('id') id: string): Promise<void> {
     const user = await this.usersService.getById(id);
     if (!user) {
