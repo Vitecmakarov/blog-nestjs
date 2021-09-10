@@ -3,7 +3,7 @@ import { readFile } from 'fs';
 import { basename } from 'path';
 import { lookup } from 'mime-types';
 
-import { CreateImageDto } from '../../../src/image/dto/images.dto';
+import { CreateImageDto } from '../../../src/image/dto/create.image.dto';
 
 export class ImageTestDto {
   async create(): Promise<CreateImageDto> {

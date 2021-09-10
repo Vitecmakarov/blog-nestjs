@@ -7,19 +7,21 @@ import { Test } from '@nestjs/testing';
 
 import { Repository } from 'typeorm';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { CategoriesModule } from '../../src/category/categories.module';
 import { PostsModule } from '../../src/post/posts.module';
 import { UsersModule } from '../../src/user/users.module';
 
-import { CreateCategoriesDto, UpdateCategoriesDto } from '../../src/category/dto/categories.dto';
+import { CreateCategoryDto } from '../../src/category/dto/create.category.dto';
+import { UpdateCategoryDto } from '../../src/category/dto/update.category.dto';
 
-import { CategoriesEntity } from '../../src/category/categories.entity';
-import { PostsEntity } from '../../src/post/posts.entity';
-import { UsersEntity } from '../../src/user/users.entity';
+import { CategoriesEntity } from '../../src/category/entity/categories.entity';
+import { PostsEntity } from '../../src/post/entity/posts.entity';
+import { UsersEntity } from '../../src/user/entity/users.entity';
 
-import { CategoriesService } from '../../src/category/categories.service';
-import { PostsService } from '../../src/post/posts.service';
-import { UsersService } from '../../src/user/users.service';
+import { CategoriesService } from '../../src/category/service/categories.service';
+import { PostsService } from '../../src/post/service/posts.service';
+import { UsersService } from '../../src/user/service/users.service';
 
 import { UserTestEntity } from './test_entities/user.test.entity';
 import { CategoryTestEntity } from './test_entities/category.test.entity';
@@ -46,6 +48,10 @@ describe('Categories module', () => {
         UsersModule,
         PostsModule,
         CategoriesModule,
+        ThrottlerModule.forRoot({
+          ttl: 60,
+          limit: 10,
+        }),
         TypeOrmModule.forRoot({
           type: 'mysql',
           host: 'localhost',
@@ -93,7 +99,7 @@ describe('Categories module', () => {
 
     const userEntity = await userTestEntity.create();
 
-    const categoryDto = new CreateCategoriesDto(userEntity.id, 'title_test');
+    const categoryDto = new CreateCategoryDto(userEntity.id, 'title_test');
 
     const expectedObj = {
       id: expect.any(String),
@@ -104,10 +110,10 @@ describe('Categories module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: userEntity.register_at,
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       posts: [],
     };
@@ -136,8 +142,9 @@ describe('Categories module', () => {
           id: postEntity.id,
           title: postEntity.title,
           content: postEntity.content,
+          rating: 0,
           created_at: expect.any(String),
-          updated_at: postEntity.updated_at,
+          updated_at: expect.any(String),
         },
       ],
       user: {
@@ -146,10 +153,10 @@ describe('Categories module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(String),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
     };
 
@@ -182,7 +189,7 @@ describe('Categories module', () => {
     const userEntity = await userTestEntity.create();
     const categoryEntity = await categoryTestEntity.create(userEntity.id);
 
-    const categoryDto = new UpdateCategoriesDto('title_changed');
+    const categoryDto = new UpdateCategoryDto('title_changed');
 
     const expectedObj = {
       id: categoryEntity.id,
@@ -194,10 +201,10 @@ describe('Categories module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(Date),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
     };
 

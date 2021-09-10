@@ -1,13 +1,14 @@
-import { CommentsEntity } from '../../../src/comment/comments.entity';
-import { CommentsService } from '../../../src/comment/comments.service';
+import { PostsCommentsEntity } from '../../../src/comment/entity/post_comments.entity';
+import { PostCommentsService } from '../../../src/comment/service/post-comments.service';
+import { MakeRandomString } from './random.string';
 
 export class CommentTestEntity {
-  constructor(private readonly commentsService: CommentsService) {}
-  async create(user_id: string, post_id: string): Promise<CommentsEntity> {
+  constructor(private readonly commentsService: PostCommentsService) {}
+  async create(user_id: string, post_id: string): Promise<PostsCommentsEntity> {
     return await this.commentsService.create({
       user_id: user_id,
       post_id: post_id,
-      content: 'content_test',
+      content: MakeRandomString(14),
     });
   }
 }

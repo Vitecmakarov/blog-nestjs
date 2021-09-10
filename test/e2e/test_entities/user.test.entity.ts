@@ -1,14 +1,15 @@
-import { UsersEntity } from '../../../src/user/users.entity';
-import { UsersService } from '../../../src/user/users.service';
+import { UsersEntity } from '../../../src/user/entity/users.entity';
+import { UsersService } from '../../../src/user/service/users.service';
+import { MakeRandomString } from './random.string';
 
 export class UserTestEntity {
   constructor(private readonly usersService: UsersService) {}
   async create(): Promise<UsersEntity> {
     return await this.usersService.create({
-      first_name: 'first_name_test',
-      last_name: 'last_name_test',
-      mobile: 'mobile_test',
-      email: 'email_test',
+      first_name: MakeRandomString(14),
+      last_name: MakeRandomString(14),
+      mobile: MakeRandomString(14),
+      email: MakeRandomString(14),
       password: 'password_test',
     });
   }

@@ -1,24 +1,21 @@
-import { classToPlain } from 'class-transformer';
 import { config } from 'dotenv';
 
-import * as bcrypt from 'bcrypt';
 import * as request from 'supertest';
 
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from '../../src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../../src/user/users.module';
 import { PassportModule } from '@nestjs/passport';
-import { ThrottlerModule } from '@nestjs/throttler';
 
 import { Repository } from 'typeorm';
 
-import { CreateUserDto } from '../../src/user/dto/users.dto';
-import { UsersEntity } from '../../src/user/users.entity';
-import { UsersService } from '../../src/user/users.service';
+import { UsersEntity } from '../../src/user/entity/users.entity';
+import { UsersService } from '../../src/user/service/users.service';
 import { UserTestEntity } from './test_entities/user.test.entity';
 
 import { APP_GUARD } from '@nestjs/core';
@@ -81,54 +78,6 @@ describe('Auth module', () => {
 
   afterAll(async () => {
     await app.close();
-  });
-
-  it('POST /auth/register', async () => {
-    const dataBeforeInsert = classToPlain(usersService.getAll());
-    await expect(dataBeforeInsert).resolves.toEqual([]);
-
-    const userDto = new CreateUserDto(
-      'first_name_test',
-      'last_name_test',
-      'mobile_test',
-      'email_test',
-      'password_test',
-    );
-
-    const expectedObj = {
-      id: expect.any(String),
-      first_name: userDto.first_name,
-      last_name: userDto.last_name,
-      mobile: userDto.mobile,
-      email: userDto.email,
-      created_posts: [],
-      created_categories: [],
-      created_comments: [],
-      avatar: null,
-      register_at: expect.any(Date),
-      last_login: null,
-      profile_desc: null,
-      is_banned: false,
-    };
-
-    await request
-      .agent(app.getHttpServer())
-      .post('/auth/register')
-      .set('Accept', 'application/json')
-      .send(userDto)
-      .expect(201);
-
-    const promiseUser = usersService.getAll();
-
-    const dataAfterInsert = classToPlain(promiseUser);
-    await expect(dataAfterInsert).resolves.toEqual([expectedObj]);
-
-    const [user] = await promiseUser;
-
-    const isPasswordSavedCorrectly = await bcrypt.compare(userDto.password, user.password);
-    if (!isPasswordSavedCorrectly) {
-      throw new Error('Password is not saved correctly');
-    }
   });
 
   it('POST /auth/login', async () => {

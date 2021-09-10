@@ -6,8 +6,8 @@ import { PassportModule } from '@nestjs/passport';
 import { config } from 'dotenv';
 config({ path: `./env/.env.${process.env.NODE_ENV}` });
 
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthService } from './service/auth.service';
+import { AuthController } from './controller/auth.controller';
 
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';

@@ -3,14 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsModule } from '../post/posts.module';
 import { UsersModule } from '../user/users.module';
 
-import { CommentsEntity } from './comments.entity';
-import { CommentsService } from './comments.service';
-import { CommentsController } from './comments.controller';
+import { PostsCommentsEntity } from './entity/post_comments.entity';
+import { PostCommentsService } from './service/post-comments.service';
+import { PostCommentsController } from './controller/post-comments.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CommentsEntity]), PostsModule, UsersModule],
-  providers: [CommentsService],
-  controllers: [CommentsController],
-  exports: [CommentsService],
+  imports: [TypeOrmModule.forFeature([PostsCommentsEntity]), PostsModule, UsersModule],
+  providers: [PostCommentsService],
+  controllers: [PostCommentsController],
+  exports: [PostCommentsService],
 })
 export class CommentsModule {}

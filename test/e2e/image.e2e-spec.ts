@@ -9,19 +9,21 @@ import { Test } from '@nestjs/testing';
 
 import { Repository } from 'typeorm';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ImagesModule } from '../../src/image/images.module';
 import { PostsModule } from '../../src/post/posts.module';
 import { CategoriesModule } from '../../src/category/categories.module';
 import { UsersModule } from '../../src/user/users.module';
 
-import { ImagesEntity } from '../../src/image/images.entity';
-import { PostsEntity } from '../../src/post/posts.entity';
-import { CategoriesEntity } from '../../src/category/categories.entity';
-import { UsersEntity } from '../../src/user/users.entity';
+import { UsersEntity } from '../../src/user/entity/users.entity';
+import { UsersImagesEntity } from '../../src/image/entity/user_images.entity';
+import { PostsEntity } from '../../src/post/entity/posts.entity';
+import { PostsImagesEntity } from '../../src/image/entity/post_images.entity';
+import { CategoriesEntity } from '../../src/category/entity/categories.entity';
 
-import { PostsService } from '../../src/post/posts.service';
-import { CategoriesService } from '../../src/category/categories.service';
-import { UsersService } from '../../src/user/users.service';
+import { PostsService } from '../../src/post/service/posts.service';
+import { CategoriesService } from '../../src/category/service/categories.service';
+import { UsersService } from '../../src/user/service/users.service';
 
 import { UserTestEntity } from './test_entities/user.test.entity';
 import { CategoryTestEntity } from './test_entities/category.test.entity';
@@ -33,10 +35,11 @@ config({ path: `./env/.env.${process.env.NODE_ENV}` });
 describe('Categories module', () => {
   let app: INestApplication;
 
-  let imagesEntityRepository: Repository<ImagesEntity>;
-  let categoriesEntityRepository: Repository<CategoriesEntity>;
-  let usersEntityRepository: Repository<UsersEntity>;
   let postsEntityRepository: Repository<PostsEntity>;
+  let postsImagesEntityRepository: Repository<PostsImagesEntity>;
+  let usersEntityRepository: Repository<UsersEntity>;
+  let usersImagesEntityRepository: Repository<UsersImagesEntity>;
+  let categoriesEntityRepository: Repository<CategoriesEntity>;
 
   let categoriesService: CategoriesService;
   let usersService: UsersService;
@@ -50,10 +53,14 @@ describe('Categories module', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
-        ImagesModule,
         UsersModule,
-        PostsModule,
         CategoriesModule,
+        PostsModule,
+        ImagesModule,
+        ThrottlerModule.forRoot({
+          ttl: 60,
+          limit: 10,
+        }),
         TypeOrmModule.forRoot({
           type: 'mysql',
           host: 'localhost',
@@ -69,10 +76,11 @@ describe('Categories module', () => {
 
     app = module.createNestApplication();
 
-    usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
-    categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
-    imagesEntityRepository = module.get(getRepositoryToken(ImagesEntity));
+    postsImagesEntityRepository = module.get(getRepositoryToken(PostsImagesEntity));
+    usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
+    usersImagesEntityRepository = module.get(getRepositoryToken(UsersImagesEntity));
+    categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
 
     usersService = module.get(UsersService);
     postsService = module.get(PostsService);
@@ -87,11 +95,12 @@ describe('Categories module', () => {
   }, 15000);
 
   afterEach(async () => {
+    await postsImagesEntityRepository.query(`DELETE FROM posts_images;`);
     await postsEntityRepository.query(`DELETE FROM posts_categories;`);
     await postsEntityRepository.query(`DELETE FROM posts;`);
-    await categoriesEntityRepository.query(`DELETE FROM posts;`);
+    await categoriesEntityRepository.query(`DELETE FROM categories;`);
+    await usersImagesEntityRepository.query(`DELETE FROM users_images;`);
     await usersEntityRepository.query(`DELETE FROM users;`);
-    await imagesEntityRepository.query(`DELETE FROM images;`);
   });
 
   afterAll(async () => {
@@ -100,7 +109,7 @@ describe('Categories module', () => {
     await deleteTestImagesDir(process.env.PWD + process.env.IMAGES_DIR);
   });
 
-  it('GET (/images/image/:id, /images/post/:id, /images/user/:id)', async () => {
+  it('GET (/images/post/:id, /images/user/:id)', async () => {
     const userEntity = await userTestEntity.create();
     const categoryEntity = await categoryTestEntity.create(userEntity.id);
     const imageDto = await imageTestDto.create();
@@ -110,20 +119,7 @@ describe('Categories module', () => {
       avatar: imageDto,
     });
 
-    const image = await imagesEntityRepository.findOne({
-      where: { user: { id: userEntity.id } },
-      relations: ['user'],
-    });
-
     let response = await request
-      .agent(app.getHttpServer())
-      .get(`/images/image/${image.id}`)
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /octet-stream/)
-      .expect(200);
-    expect(response.body).toEqual(expect.any(Buffer));
-
-    response = await request
       .agent(app.getHttpServer())
       .get(`/images/user/${userEntity.id}`)
       .set('Accept', 'application/json')

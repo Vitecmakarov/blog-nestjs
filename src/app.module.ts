@@ -5,6 +5,7 @@ import { UsersModule } from './user/users.module';
 import { PostsModule } from './post/posts.module';
 import { CategoriesModule } from './category/categories.module';
 import { CommentsModule } from './comment/comments.module';
+import { RatingModule } from './rating/rating.module';
 import { ImagesModule } from './image/images.module';
 import { AuthModule } from './auth/auth.module';
 
@@ -24,6 +25,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     CommentsModule,
     ImagesModule,
     AuthModule,
+    RatingModule,
   ],
   providers: [
     {

@@ -6,6 +6,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { UsersModule } from '../../src/user/users.module';
 import { CategoriesModule } from '../../src/category/categories.module';
 import { PostsModule } from '../../src/post/posts.module';
@@ -13,17 +14,18 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
-import { CreatePostCommentDto, UpdatePostCommentDto } from '../../src/comment/dto/comments.dto';
+import { CreatePostCommentDto } from '../../src/comment/dto/create.post-coment.dto';
+import { UpdatePostCommentDto } from '../../src/comment/dto/update.post-comment.dto';
 
-import { UsersEntity } from '../../src/user/users.entity';
-import { CategoriesEntity } from '../../src/category/categories.entity';
-import { PostsEntity } from '../../src/post/posts.entity';
-import { CommentsEntity } from '../../src/comment/comments.entity';
+import { UsersEntity } from '../../src/user/entity/users.entity';
+import { CategoriesEntity } from '../../src/category/entity/categories.entity';
+import { PostsEntity } from '../../src/post/entity/posts.entity';
+import { PostsCommentsEntity } from '../../src/comment/entity/post_comments.entity';
 
-import { UsersService } from '../../src/user/users.service';
-import { CategoriesService } from '../../src/category/categories.service';
-import { PostsService } from '../../src/post/posts.service';
-import { CommentsService } from '../../src/comment/comments.service';
+import { UsersService } from '../../src/user/service/users.service';
+import { CategoriesService } from '../../src/category/service/categories.service';
+import { PostsService } from '../../src/post/service/posts.service';
+import { PostCommentsService } from '../../src/comment/service/post-comments.service';
 
 import { UserTestEntity } from './test_entities/user.test.entity';
 import { CategoryTestEntity } from './test_entities/category.test.entity';
@@ -36,12 +38,12 @@ describe('Posts module', () => {
   let usersEntityRepository: Repository<UsersEntity>;
   let categoriesEntityRepository: Repository<CategoriesEntity>;
   let postsEntityRepository: Repository<PostsEntity>;
-  let commentsEntityRepository: Repository<CommentsEntity>;
+  let commentsEntityRepository: Repository<PostsCommentsEntity>;
 
   let usersService: UsersService;
   let categoriesService: CategoriesService;
   let postsService: PostsService;
-  let commentsService: CommentsService;
+  let commentsService: PostCommentsService;
 
   let userTestEntity: UserTestEntity;
   let categoryTestEntity: CategoryTestEntity;
@@ -55,6 +57,10 @@ describe('Posts module', () => {
         CategoriesModule,
         PostsModule,
         CommentsModule,
+        ThrottlerModule.forRoot({
+          ttl: 60,
+          limit: 10,
+        }),
         TypeOrmModule.forRoot({
           type: 'mysql',
           host: 'localhost',
@@ -73,12 +79,12 @@ describe('Posts module', () => {
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
     categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
-    commentsEntityRepository = module.get(getRepositoryToken(CommentsEntity));
+    commentsEntityRepository = module.get(getRepositoryToken(PostsCommentsEntity));
 
     usersService = module.get(UsersService);
     categoriesService = module.get(CategoriesService);
     postsService = module.get(PostsService);
-    commentsService = module.get(CommentsService);
+    commentsService = module.get(PostCommentsService);
 
     userTestEntity = new UserTestEntity(usersService);
     categoryTestEntity = new CategoryTestEntity(categoriesService);
@@ -90,9 +96,9 @@ describe('Posts module', () => {
 
   afterEach(async () => {
     await postsEntityRepository.query(`DELETE FROM posts_categories;`);
+    await commentsEntityRepository.query(`DELETE FROM posts_comments;`);
     await postsEntityRepository.query(`DELETE FROM posts;`);
     await categoriesEntityRepository.query(`DELETE FROM categories;`);
-    await commentsEntityRepository.query(`DELETE FROM comments;`);
     await usersEntityRepository.query(`DELETE FROM users;`);
   });
 
@@ -119,20 +125,24 @@ describe('Posts module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(Date),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       post: {
         id: postEntity.id,
         title: postEntity.title,
         content: postEntity.content,
+        rating: postEntity.rating,
         created_at: expect.any(Date),
-        updated_at: postEntity.updated_at,
+        updated_at: expect.any(Date),
       },
+      grades: [],
+      likes_count: 0,
+      dislikes_count: 0,
       created_at: expect.any(Date),
-      updated_at: null,
+      updated_at: expect.any(Date),
     };
 
     await request
@@ -161,20 +171,24 @@ describe('Posts module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(String),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       post: {
         id: postEntity.id,
         title: postEntity.title,
         content: postEntity.content,
+        rating: postEntity.rating,
         created_at: expect.any(String),
-        updated_at: postEntity.updated_at,
+        updated_at: expect.any(String),
       },
+      grades: [],
+      likes_count: 0,
+      dislikes_count: 0,
       created_at: expect.any(String),
-      updated_at: null,
+      updated_at: expect.any(String),
     };
 
     const response = await request
@@ -203,18 +217,22 @@ describe('Posts module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(Date),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       post: {
         id: postEntity.id,
         title: postEntity.title,
         content: postEntity.content,
+        rating: postEntity.rating,
         created_at: expect.any(Date),
-        updated_at: postEntity.updated_at,
+        updated_at: expect.any(Date),
       },
+      grades: [],
+      likes_count: 0,
+      dislikes_count: 0,
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
     };

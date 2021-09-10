@@ -9,6 +9,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { UsersModule } from '../../src/user/users.module';
 import { CategoriesModule } from '../../src/category/categories.module';
 import { PostsModule } from '../../src/post/posts.module';
@@ -16,22 +17,21 @@ import { CommentsModule } from '../../src/comment/comments.module';
 
 import { Repository } from 'typeorm';
 
-import {
-  CreatePostDto,
-  UpdatePostDto,
-  UpdatePostCategoryAction,
-  PostCategoryAction,
-} from '../../src/post/dto/posts.dto';
+import { CreatePostDto } from '../../src/post/dto/create.post.dto';
+import { UpdatePostDto } from '../../src/post/dto/update.post.dto';
+import { UpdatePostCategoryAction } from '../../src/post/dto/update.category.dto';
 
-import { UsersEntity } from '../../src/user/users.entity';
-import { CategoriesEntity } from '../../src/category/categories.entity';
-import { PostsEntity } from '../../src/post/posts.entity';
-import { CommentsEntity } from '../../src/comment/comments.entity';
+import { PostCategoryAction } from '../../src/post/enums/posts.enums';
 
-import { UsersService } from '../../src/user/users.service';
-import { CategoriesService } from '../../src/category/categories.service';
-import { PostsService } from '../../src/post/posts.service';
-import { CommentsService } from '../../src/comment/comments.service';
+import { UsersEntity } from '../../src/user/entity/users.entity';
+import { CategoriesEntity } from '../../src/category/entity/categories.entity';
+import { PostsEntity } from '../../src/post/entity/posts.entity';
+import { PostsCommentsEntity } from '../../src/comment/entity/post_comments.entity';
+
+import { UsersService } from '../../src/user/service/users.service';
+import { CategoriesService } from '../../src/category/service/categories.service';
+import { PostsService } from '../../src/post/service/posts.service';
+import { PostCommentsService } from '../../src/comment/service/post-comments.service';
 
 import { UserTestEntity } from './test_entities/user.test.entity';
 import { CategoryTestEntity } from './test_entities/category.test.entity';
@@ -47,12 +47,12 @@ describe('Posts module', () => {
   let usersEntityRepository: Repository<UsersEntity>;
   let categoriesEntityRepository: Repository<CategoriesEntity>;
   let postsEntityRepository: Repository<PostsEntity>;
-  let commentsEntityRepository: Repository<CommentsEntity>;
+  let commentsEntityRepository: Repository<PostsCommentsEntity>;
 
   let usersService: UsersService;
   let categoriesService: CategoriesService;
   let postsService: PostsService;
-  let commentsService: CommentsService;
+  let commentsService: PostCommentsService;
 
   let userTestEntity: UserTestEntity;
   let categoryTestEntity: CategoryTestEntity;
@@ -67,6 +67,10 @@ describe('Posts module', () => {
         CategoriesModule,
         PostsModule,
         CommentsModule,
+        ThrottlerModule.forRoot({
+          ttl: 60,
+          limit: 10,
+        }),
         TypeOrmModule.forRoot({
           type: 'mysql',
           host: 'localhost',
@@ -85,12 +89,12 @@ describe('Posts module', () => {
     usersEntityRepository = module.get(getRepositoryToken(UsersEntity));
     categoriesEntityRepository = module.get(getRepositoryToken(CategoriesEntity));
     postsEntityRepository = module.get(getRepositoryToken(PostsEntity));
-    commentsEntityRepository = module.get(getRepositoryToken(CommentsEntity));
+    commentsEntityRepository = module.get(getRepositoryToken(PostsCommentsEntity));
 
     usersService = module.get(UsersService);
     categoriesService = module.get(CategoriesService);
     postsService = module.get(PostsService);
-    commentsService = module.get(CommentsService);
+    commentsService = module.get(PostCommentsService);
 
     userTestEntity = new UserTestEntity(usersService);
     categoryTestEntity = new CategoryTestEntity(categoriesService);
@@ -103,9 +107,9 @@ describe('Posts module', () => {
 
   afterEach(async () => {
     await postsEntityRepository.query(`DELETE FROM posts_categories;`);
-    await postsEntityRepository.query(`DELETE FROM posts;`);
     await categoriesEntityRepository.query(`DELETE FROM categories;`);
-    await commentsEntityRepository.query(`DELETE FROM comments;`);
+    await commentsEntityRepository.query(`DELETE FROM posts_comments;`);
+    await postsEntityRepository.query(`DELETE FROM posts;`);
     await usersEntityRepository.query(`DELETE FROM users;`);
   });
 
@@ -141,10 +145,10 @@ describe('Posts module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: userEntity.register_at,
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       categories: [
         {
@@ -152,6 +156,8 @@ describe('Posts module', () => {
           title: categoryEntity.title,
         },
       ],
+      grades: [],
+      comments: [],
       image: {
         id: expect.any(String),
         path: expect.any(String),
@@ -159,9 +165,9 @@ describe('Posts module', () => {
         extension: expect.any(String),
         upload_timestamp: expect.any(Date),
       },
-      comments: [],
+      rating: 0,
       created_at: expect.any(Date),
-      updated_at: null,
+      updated_at: expect.any(Date),
     };
 
     await request
@@ -181,8 +187,6 @@ describe('Posts module', () => {
     const postEntity = await postTestEntity.create(userEntity.id, [categoryEntity.id]);
     const commentEntity = await commentTestEntity.create(userEntity.id, postEntity.id);
 
-    await categoryTestEntity.create(userEntity.id);
-
     const expectedResponseObj = {
       id: postEntity.id,
       title: postEntity.title,
@@ -192,10 +196,10 @@ describe('Posts module', () => {
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(String),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       categories: [
         {
@@ -203,18 +207,22 @@ describe('Posts module', () => {
           title: categoryEntity.title,
         },
       ],
-      image: null,
+      grades: [],
       comments: [
         {
           id: commentEntity.id,
           content: commentEntity.content,
+          likes_count: commentEntity.likes_count,
+          dislikes_count: commentEntity.dislikes_count,
           created_at: expect.any(String),
-          updated_at: commentEntity.updated_at,
+          updated_at: expect.any(String),
         },
       ],
+      image: null,
+      rating: postEntity.rating,
       content: postEntity.content,
       created_at: expect.any(String),
-      updated_at: postEntity.updated_at,
+      updated_at: expect.any(String),
     };
 
     let response = await request
@@ -248,38 +256,47 @@ describe('Posts module', () => {
     const secondCategoryEntity = await categoryTestEntity.create(userEntity.id);
     const postEntity = await postTestEntity.create(userEntity.id, [firstCategoryEntity.id]);
 
-    const categoryAction = new UpdatePostCategoryAction(
+    const addCategoryAction = new UpdatePostCategoryAction(
       PostCategoryAction.ADD,
       secondCategoryEntity.id,
     );
 
+    const deleteCategoryAction = new UpdatePostCategoryAction(
+      PostCategoryAction.DELETE,
+      firstCategoryEntity.id,
+    );
+
     const imageDto = await imageTestDto.create();
-    const postDto = new UpdatePostDto([categoryAction], 'title_test', 'content_test', imageDto);
+    const postDto = new UpdatePostDto(
+      [addCategoryAction, deleteCategoryAction],
+      'title_test',
+      'content_test',
+      imageDto,
+    );
 
     const expectedObj = {
       id: postEntity.id,
       title: postDto.title,
+      content: postDto.content,
       user: {
         id: userEntity.id,
         first_name: userEntity.first_name,
         last_name: userEntity.last_name,
         mobile: userEntity.mobile,
         email: userEntity.email,
+        profile_desc: userEntity.profile_desc,
+        rating: userEntity.rating,
         register_at: expect.any(Date),
         last_login: userEntity.last_login,
-        profile_desc: userEntity.profile_desc,
-        is_banned: userEntity.is_banned,
       },
       categories: [
-        {
-          id: firstCategoryEntity.id,
-          title: firstCategoryEntity.title,
-        },
         {
           id: secondCategoryEntity.id,
           title: secondCategoryEntity.title,
         },
       ],
+      grades: [],
+      comments: [],
       image: {
         id: expect.any(String),
         path: expect.any(String),
@@ -287,8 +304,7 @@ describe('Posts module', () => {
         size: expect.any(Number),
         upload_timestamp: expect.any(Date),
       },
-      comments: [],
-      content: postDto.content,
+      rating: 0,
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
     };
