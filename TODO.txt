@@ -1,5 +1,2 @@
 1) Add logic to ban user
 2) Add nested comments
-3) Make config globally
-4) Refactor rating and images module to use one service
-5) Refactor e2e test initial process(to not initial modules in each file)

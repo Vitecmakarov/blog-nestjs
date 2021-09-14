@@ -8,17 +8,18 @@ import {
   AfterLoad,
   OneToMany,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { hash } from 'bcrypt';
 
-import { UsersImagesEntity } from '../../image/entity/user_images.entity';
-import { UsersGradesEntity } from '../../rating/entity/users.grades.entity';
+import { UsersGradesEntity } from './users.grades.entity';
 import { CategoriesEntity } from '../../category/entity/categories.entity';
+import { ImagesEntity } from '../../image/entity/images.entity';
 import { PostsEntity } from '../../post/entity/posts.entity';
-import { PostsGradesEntity } from '../../rating/entity/posts.grades.entity';
-import { PostsCommentsEntity } from '../../comment/entity/post_comments.entity';
-import { PostsCommentsGradesEntity } from '../../rating/entity/comment.grades.entity';
+import { PostsGradesEntity } from '../../post/entity/posts.grades.entity';
+import { CommentsEntity } from '../../comment/entity/comments.entity';
+import { CommentsGradesEntity } from '../../comment/entity/comments.grades.entity';
 
 @Entity('users')
 export class UsersEntity extends BaseEntity {
@@ -41,35 +42,32 @@ export class UsersEntity extends BaseEntity {
   @Column({ type: 'varchar', nullable: false })
   password: string;
 
-  @Exclude({ toPlainOnly: true })
   @OneToMany(() => UsersGradesEntity, (grade) => grade.estimator)
-  users_grades: UsersGradesEntity[];
+  users_rates: UsersGradesEntity[];
 
-  @Exclude({ toPlainOnly: true })
   @OneToMany(() => PostsGradesEntity, (grade) => grade.estimator)
-  posts_grades: PostsGradesEntity[];
+  posts_rates: PostsGradesEntity[];
 
-  @Exclude({ toPlainOnly: true })
-  @OneToMany(() => PostsCommentsGradesEntity, (grade) => grade.estimator)
-  comments_grades: PostsCommentsGradesEntity[];
+  @OneToMany(() => CommentsGradesEntity, (grade) => grade.estimator)
+  comments_rates: CommentsGradesEntity[];
 
-  @Exclude({ toPlainOnly: true })
   @OneToMany(() => PostsEntity, (post) => post.user)
   created_posts: PostsEntity[];
 
-  @Exclude({ toPlainOnly: true })
   @OneToMany(() => CategoriesEntity, (category) => category.user)
   created_categories: CategoriesEntity[];
 
-  @Exclude({ toPlainOnly: true })
-  @OneToMany(() => PostsCommentsEntity, (comment) => comment.user)
-  created_comments: PostsCommentsEntity[];
+  @OneToMany(() => CommentsEntity, (comment) => comment.user)
+  created_comments: CommentsEntity[];
 
-  @OneToMany(() => UsersGradesEntity, (grade) => grade.evaluated)
+  @OneToMany(() => UsersGradesEntity, (grade) => grade.evaluated_user)
   grades: UsersGradesEntity[];
 
-  @OneToOne(() => UsersImagesEntity, (image) => image.user)
-  avatar: UsersImagesEntity;
+  @OneToOne(() => ImagesEntity, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'image_id', referencedColumnName: 'id' })
+  avatar: ImagesEntity;
 
   @Column({ type: 'varchar', nullable: true, length: 100 })
   profile_desc: string;

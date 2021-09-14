@@ -35,7 +35,7 @@ export class CategoriesController {
   }
 
   @Public()
-  @Get('category/:id')
+  @Get(':id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getCategoryById(@Param('id') id: string): Promise<CategoriesEntity> {
     const category = await this.categoriesService.getById(id);
@@ -59,7 +59,7 @@ export class CategoriesController {
     return await this.categoriesService.getAllByTitle(title);
   }
 
-  @Patch('category/:id')
+  @Patch(':id')
   async updateCategory(@Param('id') id: string, @Body() data: UpdateCategoryDto): Promise<void> {
     const category = await this.categoriesService.getById(id);
     if (!category) {
@@ -68,7 +68,7 @@ export class CategoriesController {
     await this.categoriesService.update(id, data);
   }
 
-  @Delete('category/:id')
+  @Delete(':id')
   async deleteCategory(@Param('id') id: string): Promise<void> {
     const category = await this.categoriesService.getById(id);
     if (!category) {

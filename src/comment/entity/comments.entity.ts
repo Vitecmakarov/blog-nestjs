@@ -13,10 +13,10 @@ import {
 
 import { UsersEntity } from '../../user/entity/users.entity';
 import { PostsEntity } from '../../post/entity/posts.entity';
-import { PostsCommentsGradesEntity } from '../../rating/entity/comment.grades.entity';
+import { CommentsGradesEntity } from './comments.grades.entity';
 
-@Entity('posts_comments')
-export class PostsCommentsEntity extends BaseEntity {
+@Entity('comments')
+export class CommentsEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -32,8 +32,8 @@ export class PostsCommentsEntity extends BaseEntity {
   @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
   post: PostsEntity;
 
-  @OneToMany(() => PostsCommentsGradesEntity, (grade) => grade.evaluated)
-  grades: PostsCommentsGradesEntity[];
+  @OneToMany(() => CommentsGradesEntity, (grade) => grade.evaluated_comment)
+  grades: CommentsGradesEntity[];
 
   @Column({ type: 'text', nullable: false })
   content: string;

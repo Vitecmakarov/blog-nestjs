@@ -1,5 +1,12 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { compare } from 'bcrypt';
+
+import { RATING_AVAILABLE_FOR_LOGIN, MINIMUM_GRADES_TO_VALIDATE } from '../constants/constants';
 
 import { GeneratedAccessToken } from '../dto/access.token.dto';
 import { LocalAuthResponse } from '../dto/local.auth.responce.dto';
@@ -18,6 +25,13 @@ export class AuthService {
     const user = await this.usersService.getByPhoneNumber(mobile);
     if (!user) {
       throw new NotFoundException('User with this phone number does not exist');
+    }
+
+    if (
+      user.grades.length > MINIMUM_GRADES_TO_VALIDATE &&
+      user.rating < RATING_AVAILABLE_FOR_LOGIN
+    ) {
+      throw new NotAcceptableException('User rating is too low, account is not available');
     }
 
     const isPasswordValid = await compare(password, user.password);

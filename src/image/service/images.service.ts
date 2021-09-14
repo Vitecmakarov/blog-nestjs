@@ -1,56 +1,65 @@
-import { config } from 'dotenv';
-config({ path: `./env/.env.${process.env.NODE_ENV}` });
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
+import { config } from 'dotenv';
 import { createHash } from 'crypto';
 import { promisify } from 'util';
 import { extension as mimeToExtension } from 'mime-types';
 import { writeFile, existsSync, mkdirSync, access, mkdir, unlink } from 'fs';
 
 import { CreateImageDto } from '../dto/create.image.dto';
-import { ImageDataToSave } from '../interfaces/images.interfaces';
+import { ImagesEntity } from '../entity/images.entity';
 
+config({ path: `./env/.env.${process.env.NODE_ENV}` });
 const imagesDir = process.env.PWD + process.env.IMAGES_DIR;
 
-export class BaseImagesService {
-  constructor() {
+export class ImagesService {
+  constructor(
+    @InjectRepository(ImagesEntity)
+    private readonly imagesRepository: Repository<ImagesEntity>,
+  ) {
     if (!existsSync(imagesDir)) {
       mkdirSync(imagesDir);
     }
   }
 
-  async saveToFs(dataDto: CreateImageDto): Promise<ImageDataToSave> {
+  async create(dataDto: CreateImageDto): Promise<ImagesEntity> {
     const { filename, data, type } = dataDto;
 
     const buff = Buffer.from(data, 'base64');
     const size = buff.byteLength;
     const extension = mimeToExtension(type) as string;
 
-    const fileName = BaseImagesService._createImageName(filename);
-    const fileDir = await BaseImagesService._createImageDirIfNotExist(fileName);
+    const fileName = ImagesService._createImageName(filename);
+    const fileDir = await ImagesService._createImageDirIfNotExist(fileName);
 
     const path = `${fileDir}/${fileName}.${extension}`;
     const write = promisify(writeFile);
     await write(path, buff);
 
-    return {
+    const image = await this.imagesRepository.create({
       path: path,
       size: size,
       extension: extension,
-    };
+    });
+
+    await this.imagesRepository.save(image);
+    return image;
   }
 
-  async removeFromFs(path: string): Promise<void> {
+  async remove(id: string): Promise<void> {
+    const image = await this.imagesRepository.findOne(id);
+    await this.imagesRepository.delete(id);
+
     const checkIfFileExist = promisify(access);
     const unlinkFile = promisify(unlink);
 
     try {
-      await checkIfFileExist(path);
+      await checkIfFileExist(image.path);
     } catch (err) {
-      if (err.code === 'ENOENT') {
-        return;
-      }
+      return;
     }
-    await unlinkFile(path);
+    await unlinkFile(image.path);
   }
 
   private static async _createImageDirIfNotExist(filename: string): Promise<string> {
@@ -62,9 +71,7 @@ export class BaseImagesService {
     try {
       await checkIfDirExist(fileDir);
     } catch (err) {
-      if (err.code === 'ENOENT') {
-        await createDir(fileDir);
-      }
+      await createDir(fileDir);
     }
     return fileDir;
   }

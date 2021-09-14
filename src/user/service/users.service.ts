@@ -1,21 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { hash } from 'bcrypt';
 
 import { CreateUserDto } from '../dto/create.user.dto';
+import { UpdateUserGradesDto } from '../dto/update.user.grades.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
+import { UpdatePasswordDto } from '../dto/update.password.dto';
 
 import { UsersEntity } from '../entity/users.entity';
-import { UserImagesService } from '../../image/service/user_images.service';
+import { UsersGradesEntity } from '../entity/users.grades.entity';
+
+import { ImagesService } from '../../image/service/images.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private readonly usersRepository: Repository<UsersEntity>,
-    private readonly userImageService: UserImagesService,
+    @InjectRepository(UsersGradesEntity)
+    private readonly usersGradesRepository: Repository<UsersGradesEntity>,
+    private readonly imagesService: ImagesService,
   ) {}
 
   async create(data: CreateUserDto): Promise<UsersEntity> {
@@ -41,21 +47,47 @@ export class UsersService {
     const { avatar, ...dataToUpdate } = dataDto;
 
     const user = await this.usersRepository.findOne(id, {
-      relations: ['avatar', 'grades'],
+      relations: ['avatar'],
     });
 
     if (avatar) {
       if (user.avatar) {
-        await this.userImageService.remove(user.avatar.id);
+        await this.imagesService.remove(user.avatar.id);
       }
-      user.avatar = await this.userImageService.create(avatar);
+      user.avatar = await this.imagesService.create(avatar);
     }
 
     await this.usersRepository.save({ ...user, ...dataToUpdate });
   }
 
-  async updatePassword(id: string, password: string): Promise<void> {
-    const hashedPassword = await hash(password, 10);
+  async updateRating(evaluated_id: string, data: UpdateUserGradesDto): Promise<void> {
+    const prev_grade = await this.usersGradesRepository.findOne({
+      where: { estimator: { id: data.estimator_id }, evaluated_user: { id: evaluated_id } },
+    });
+
+    if (prev_grade) {
+      await this.usersGradesRepository.save({ ...prev_grade, grade: data.grade });
+    } else {
+      const estimator = await this.usersRepository.findOne(data.estimator_id);
+      if (!estimator) {
+        throw new NotFoundException('User not found');
+      }
+      const evaluated_user = await this.usersRepository.findOne(evaluated_id);
+      if (!evaluated_user) {
+        throw new NotFoundException('Evaluated user not found');
+      }
+
+      const estimator_grade = this.usersGradesRepository.create({
+        estimator: estimator,
+        evaluated_user: evaluated_user,
+        grade: data.grade,
+      });
+      await this.usersGradesRepository.save(estimator_grade);
+    }
+  }
+
+  async updatePassword(id: string, data: UpdatePasswordDto): Promise<void> {
+    const hashedPassword = await hash(data.password, 10);
     await this.usersRepository.update({ id }, { password: hashedPassword });
   }
 
@@ -65,22 +97,11 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.usersRepository.findOne(id, {
-      relations: ['avatar', 'created_posts'],
+      relations: ['avatar'],
     });
 
-    if (user.created_posts.length !== 0) {
-      await Promise.all(
-        user.created_posts.map(async (post) => {
-          if (post.image) {
-            await this.userImageService.remove(post.image.id);
-          }
-          return;
-        }),
-      );
-    }
-
     if (user.avatar) {
-      await this.userImageService.remove(user.avatar.id);
+      await this.imagesService.remove(user.avatar.id);
     }
     await this.usersRepository.delete(id);
   }
@@ -88,16 +109,7 @@ export class UsersService {
   // Only for tests
   async getAll(): Promise<UsersEntity[]> {
     return await this.usersRepository.find({
-      relations: [
-        'avatar',
-        'created_posts',
-        'created_categories',
-        'created_comments',
-        'grades',
-        'users_grades',
-        'posts_grades',
-        'comments_grades',
-      ],
+      relations: ['avatar', 'grades'],
     });
   }
 }

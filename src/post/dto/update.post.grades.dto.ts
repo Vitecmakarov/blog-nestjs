@@ -1,17 +1,17 @@
 import { IsNumber, IsString, IsUUID, Max, Min } from 'class-validator';
 
-export class CreateGradeDto {
+export class UpdatePostGradesDto {
   @IsString()
   @IsUUID(4)
-  estimator: string;
+  estimator_id: string;
 
   @IsNumber()
   @Min(1)
-  @Max(5)
+  @Max(10)
   grade: number;
 
   constructor(estimator: string, grade: number) {
-    this.estimator = estimator;
+    this.estimator_id = estimator;
     this.grade = grade;
   }
 }

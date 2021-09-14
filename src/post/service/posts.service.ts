@@ -4,11 +4,14 @@ import { Repository } from 'typeorm';
 
 import { CreatePostDto } from '../dto/create.post.dto';
 import { UpdatePostDto } from '../dto/update.post.dto';
+import { UpdatePostGradesDto } from '../dto/update.post.grades.dto';
+
 import { PostCategoryAction } from '../enums/posts.enums';
 
 import { PostsEntity } from '../entity/posts.entity';
+import { PostsGradesEntity } from '../entity/posts.grades.entity';
 
-import { PostImagesService } from '../../image/service/post_images.service';
+import { ImagesService } from '../../image/service/images.service';
 import { CategoriesService } from '../../category/service/categories.service';
 import { UsersService } from '../../user/service/users.service';
 
@@ -17,7 +20,9 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsEntity)
     private readonly postsRepository: Repository<PostsEntity>,
-    private readonly postImagesService: PostImagesService,
+    @InjectRepository(PostsGradesEntity)
+    private readonly postsGradesRepository: Repository<PostsGradesEntity>,
+    private readonly imagesService: ImagesService,
     private readonly categoriesService: CategoriesService,
     private readonly usersService: UsersService,
   ) {}
@@ -28,7 +33,7 @@ export class PostsService {
     const post = this.postsRepository.create(post_data);
     post.user = await this.usersService.getById(user_id);
     if (!post.user) {
-      throw new NotFoundException('User with this id is not exist');
+      throw new NotFoundException('User is not found');
     }
 
     post.categories = await Promise.all(
@@ -38,7 +43,7 @@ export class PostsService {
     );
 
     if (image) {
-      post.image = await this.postImagesService.create(image);
+      post.image = await this.imagesService.create(image);
     }
 
     await this.postsRepository.save(post);
@@ -48,9 +53,6 @@ export class PostsService {
   async getAll(): Promise<PostsEntity[]> {
     return await this.postsRepository.find({
       relations: ['user', 'categories', 'grades', 'comments', 'image'],
-      order: {
-        created_at: 'ASC',
-      },
     });
   }
 
@@ -93,12 +95,38 @@ export class PostsService {
 
     if (image) {
       if (post.image) {
-        await this.postImagesService.remove(id);
+        await this.imagesService.remove(id);
       }
-      post.image = await this.postImagesService.create(image);
+      post.image = await this.imagesService.create(image);
     }
 
     return await this.postsRepository.save({ ...post, ...post_data });
+  }
+
+  async updateRating(evaluated_id: string, data: UpdatePostGradesDto): Promise<void> {
+    const prev_grade = await this.postsGradesRepository.findOne({
+      where: { estimator: { id: data.estimator_id }, evaluated_post: { id: evaluated_id } },
+    });
+
+    if (prev_grade) {
+      await this.postsGradesRepository.save({ ...prev_grade, grade: data.grade });
+    } else {
+      const estimator = await this.usersService.getById(data.estimator_id);
+      if (!estimator) {
+        throw new NotFoundException('User not found');
+      }
+      const evaluated_post = await this.postsRepository.findOne(evaluated_id);
+      if (!evaluated_post) {
+        throw new NotFoundException('Evaluated post not found');
+      }
+
+      const estimator_grade = this.postsGradesRepository.create({
+        estimator: estimator,
+        evaluated_post: evaluated_post,
+        grade: data.grade,
+      });
+      await this.postsGradesRepository.save(estimator_grade);
+    }
   }
 
   async remove(id: string): Promise<void> {
@@ -107,7 +135,7 @@ export class PostsService {
     });
 
     if (post.image) {
-      await this.postImagesService.remove(post.image.id);
+      await this.imagesService.remove(post.image.id);
     }
     await this.postsRepository.delete(id);
   }

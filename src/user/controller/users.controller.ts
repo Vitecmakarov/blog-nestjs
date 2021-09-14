@@ -6,36 +6,45 @@ import {
   Delete,
   Body,
   Param,
-  UseGuards,
   UseInterceptors,
   NotFoundException,
   ClassSerializerInterceptor,
+  StreamableFile,
 } from '@nestjs/common';
 import { Public } from '../../decorators/jwt.decorator';
+
+import { createReadStream } from 'fs';
 
 import { CreateUserDto } from '../dto/create.user.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
 import { UpdatePasswordDto } from '../dto/update.password.dto';
+import { UpdateUserGradesDto } from '../dto/update.user.grades.dto';
 
 import { UsersEntity } from '../entity/users.entity';
 import { UsersService } from '../service/users.service';
 
-import { ThrottlerGuard } from '@nestjs/throttler';
-
-@Controller('user')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @Public()
-  @UseGuards(ThrottlerGuard)
   @Post('register')
   async registerUser(@Body() data: CreateUserDto): Promise<void> {
     await this.usersService.create(data);
   }
 
+  @Post(':id/grades')
+  async addGradeToUser(@Param('id') id: string, @Body() data: UpdateUserGradesDto): Promise<void> {
+    const user = await this.usersService.getById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.usersService.updateRating(id, data);
+  }
+
   @Public()
   @Get(':id')
   @UseInterceptors(ClassSerializerInterceptor)
-  async getUserById(@Param('id') id: string): Promise<UsersEntity> {
+  async getUser(@Param('id') id: string): Promise<UsersEntity> {
     const user = await this.usersService.getById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -43,8 +52,22 @@ export class UsersController {
     return user;
   }
 
-  @Patch(':id')
-  async updateUser(@Param('id') id: string, @Body() data: UpdateUserDto): Promise<void> {
+  @Public()
+  @Get(':id/avatar')
+  async getUserAvatar(@Param('id') id: string): Promise<StreamableFile> {
+    const user = await this.usersService.getById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!user.avatar) {
+      throw new NotFoundException('Avatar not found');
+    }
+    const file = createReadStream(user.avatar.path);
+    return new StreamableFile(file);
+  }
+
+  @Patch(':id/profile')
+  async updateUserProfile(@Param('id') id: string, @Body() data: UpdateUserDto): Promise<void> {
     const user = await this.usersService.getById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -52,7 +75,7 @@ export class UsersController {
     await this.usersService.update(id, data);
   }
 
-  @Patch(':id/pass/change')
+  @Patch(':id/password')
   async updateUserPassword(
     @Param('id') id: string,
     @Body() data: UpdatePasswordDto,
@@ -61,7 +84,7 @@ export class UsersController {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.usersService.updatePassword(id, data.password);
+    await this.usersService.updatePassword(id, data);
   }
 
   @Delete(':id')

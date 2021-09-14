@@ -14,11 +14,11 @@ import {
   JoinTable,
 } from 'typeorm';
 
+import { PostsGradesEntity } from './posts.grades.entity';
 import { UsersEntity } from '../../user/entity/users.entity';
 import { CategoriesEntity } from '../../category/entity/categories.entity';
-import { PostsCommentsEntity } from '../../comment/entity/post_comments.entity';
-import { PostsImagesEntity } from '../../image/entity/post_images.entity';
-import { PostsGradesEntity } from '../../rating/entity/posts.grades.entity';
+import { CommentsEntity } from '../../comment/entity/comments.entity';
+import { ImagesEntity } from '../../image/entity/images.entity';
 
 @Entity('posts')
 export class PostsEntity extends BaseEntity {
@@ -53,14 +53,17 @@ export class PostsEntity extends BaseEntity {
   })
   categories: CategoriesEntity[];
 
-  @OneToMany(() => PostsGradesEntity, (grade) => grade.evaluated)
+  @OneToMany(() => PostsGradesEntity, (grade) => grade.evaluated_post)
   grades: PostsGradesEntity[];
 
-  @OneToMany(() => PostsCommentsEntity, (comment) => comment.post)
-  comments: PostsCommentsEntity[];
+  @OneToMany(() => CommentsEntity, (comment) => comment.post)
+  comments: CommentsEntity[];
 
-  @OneToOne(() => PostsImagesEntity, (image) => image.post)
-  image: PostsImagesEntity;
+  @OneToOne(() => ImagesEntity, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'image_id', referencedColumnName: 'id' })
+  image: ImagesEntity;
 
   @Column({ type: 'float', nullable: false, default: 0 })
   rating: number;

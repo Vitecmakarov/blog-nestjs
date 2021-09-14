@@ -1,6 +1,6 @@
 import { IsString, IsUUID } from 'class-validator';
 
-export class CreatePostCommentDto {
+export class CreateCommentDto {
   @IsString()
   @IsUUID(4)
   user_id: string;

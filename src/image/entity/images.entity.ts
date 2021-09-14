@@ -1,6 +1,7 @@
-import { BaseEntity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
-export class BaseImagesEntity extends BaseEntity {
+@Entity('images')
+export class ImagesEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

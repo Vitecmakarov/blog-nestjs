@@ -23,7 +23,7 @@ export class CategoriesService {
 
     category.user = await this.usersService.getById(user_id);
     if (!category.user) {
-      throw new NotFoundException('User with this id is not exist');
+      throw new NotFoundException('User not found');
     }
     await this.categoriesRepository.save(category);
 

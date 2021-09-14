@@ -1,7 +1,7 @@
 import { ArrayMinSize, IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
 
 import { CreateImageDto } from '../../image/dto/create.image.dto';
-import { UpdatePostCategoryAction } from './update.category.dto';
+import { UpdatePostCategoryAction } from './update.post.category.dto';
 
 export class UpdatePostDto {
   @IsOptional()
